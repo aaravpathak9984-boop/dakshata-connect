@@ -116,7 +116,7 @@ export function CourseDetailView() {
   const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
   const [rosterSearch, setRosterSearch] = useState("");
 
-  const isTrainerOrAdmin = user?.roles.some(
+  const isTrainerOrAdmin = user?.roles?.some(
     (role) => role === "Trainer" || role === "Admin"
   );
 
@@ -306,17 +306,6 @@ export function CourseDetailView() {
 
       const docRef = await addDoc(collection(db, "enrollments"), newEnrollData);
       setEnrollment({ id: docRef.id, ...newEnrollData });
-
-      // Increment active enrolments count
-      const updatedCount = (course.activeEnrolments || 0) + 1;
-      await updateDoc(doc(db, "courses", courseId), {
-        activeEnrolments: updatedCount
-      });
-
-      setCourse((prev: any) => ({
-        ...prev,
-        activeEnrolments: updatedCount
-      }));
 
     } catch (err) {
       console.error("Enrollment failed:", err);
@@ -637,7 +626,7 @@ export function CourseDetailView() {
                           Max Points: {ass.maxPoints} · Due: {new Date(ass.dueAtUtc).toLocaleDateString()}
                         </span>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/my-courses`)}>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/my-courses/${courseId}/assignments`)}>
                         View Work
                       </Button>
                     </div>
@@ -671,7 +660,7 @@ export function CourseDetailView() {
                           Questions: {quiz.questions?.length || 0} · Due: {new Date(quiz.deadline).toLocaleDateString()}
                         </span>
                       </div>
-                      <Button variant="default" size="sm" onClick={() => navigate(`/admin/assessments`)}>
+                      <Button variant="default" size="sm" onClick={() => navigate(`/my-courses/${courseId}/quizzes/${quiz.id}/attempt`)}>
                         Attempt Quiz
                       </Button>
                     </div>
