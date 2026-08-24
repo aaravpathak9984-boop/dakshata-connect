@@ -9,7 +9,9 @@ import {
   doc, 
   query, 
   orderBy, 
-  onSnapshot 
+  onSnapshot,
+  getDocs,
+  where
 } from "firebase/firestore";
 import { 
   FileText, 
@@ -39,6 +41,8 @@ interface LibraryMaterial {
   fileSize: number;
   fileType: string;
   storagePath: string;
+  courseId?: string;
+  courseName?: string;
 }
 
 export function TrainerLibrary() {
@@ -56,6 +60,10 @@ export function TrainerLibrary() {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Associated Courses State
+  const [courses, setCourses] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+
   // Delete State
   const [materialToDelete, setMaterialToDelete] = useState<LibraryMaterial | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -65,6 +73,32 @@ export function TrainerLibrary() {
   const isTrainerOrAdmin = user?.roles.some(
     (role) => role === "Trainer" || role === "Admin"
   );
+
+  // Load Courses for the upload dropdown selector
+  useEffect(() => {
+    if (!user) return;
+    const fetchCourses = async () => {
+      try {
+        const isOnlyTrainer = user.roles.includes("Trainer") && !user.roles.includes("Admin");
+        const q = isOnlyTrainer
+          ? query(collection(db, "courses"), where("lecturerId", "==", user.id))
+          : query(collection(db, "courses"));
+        
+        const snap = await getDocs(q);
+        const list: any[] = [];
+        snap.forEach((d) => {
+          list.push({ id: d.id, ...d.data() });
+        });
+        setCourses(list);
+        if (list.length > 0) {
+          setSelectedCourseId(list[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to load courses for library upload form:", err);
+      }
+    };
+    fetchCourses();
+  }, [user]);
 
   // Sync materials from Firestore
   useEffect(() => {
@@ -191,7 +225,9 @@ export function TrainerLibrary() {
         fileName: selectedFile.name,
         fileSize: selectedFile.size,
         fileType: selectedFile.type,
-        storagePath: ""
+        storagePath: "",
+        courseId: selectedCourseId,
+        courseName: courses.find(c => c.id === selectedCourseId)?.title || "General"
       });
 
       setUploadProgress(100);
@@ -296,8 +332,8 @@ export function TrainerLibrary() {
               </div>
 
               {selectedFile && (
-                <div className="flex gap-3 items-end">
-                  <div className="flex-1 space-y-1.5">
+                <div className="grid gap-3 sm:grid-cols-2 items-end">
+                  <div className="space-y-1.5">
                     <label className="text-sm font-medium">Display Title</label>
                     <Input 
                       value={customTitle} 
@@ -306,13 +342,31 @@ export function TrainerLibrary() {
                       required
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    isLoading={uploading}
-                    disabled={uploading}
-                  >
-                    Upload File
-                  </Button>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Assign to Course</label>
+                    <select
+                      value={selectedCourseId}
+                      onChange={(e) => setSelectedCourseId(e.target.value)}
+                      required
+                      className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-rose-500"
+                    >
+                      <option value="">-- Select Course (Mandatory) --</option>
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title} ({c.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2 flex justify-end pt-2">
+                    <Button 
+                      type="submit" 
+                      isLoading={uploading}
+                      disabled={uploading || !selectedCourseId}
+                    >
+                      Upload File
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -401,6 +455,13 @@ export function TrainerLibrary() {
                         day: 'numeric' 
                       })}
                     </div>
+                    {item.courseName && (
+                      <div className="col-span-2 mt-1">
+                        <span className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary max-w-full truncate">
+                          Course: {item.courseName}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
