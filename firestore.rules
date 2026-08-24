@@ -28,11 +28,29 @@ service cloud.firestore {
       );
     }
 
+    // Helper: returns true if the update is changing any protected field
+    function isChangingProtectedFields() {
+      return (
+        request.resource.data.role != resource.data.role ||
+        request.resource.data.roles != resource.data.roles ||
+        request.resource.data.isApproved != resource.data.isApproved ||
+        request.resource.data.isActive != resource.data.isActive
+      );
+    }
+
     // 1. Users Collection
+    //    - Anyone can read (authenticated).
+    //    - Users can update their OWN profile (name, skills, etc.) but NOT role/roles/isApproved/isActive.
+    //    - Only Admins can change role, roles, isApproved, isActive on ANY user.
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow update: if isAuthenticated() && (
+        // Admin can update anything on anyone
+        isAdmin() ||
+        // Non-admin can only update their own doc AND must NOT touch protected fields
+        (request.auth.uid == userId && !isChangingProtectedFields())
+      );
       allow delete: if isAuthenticated() && isAdmin();
     }
 
