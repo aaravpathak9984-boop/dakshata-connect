@@ -1,4 +1,4 @@
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import {
   collection,
   deleteDoc,
@@ -9,8 +9,6 @@ import {
   setDoc,
   updateDoc,
   where,
-  increment,
-  writeBatch
 } from "firebase/firestore";
 import type {
   AttemptInProgress,
@@ -21,7 +19,6 @@ import type {
   QuizSummary,
   SaveQuestionInput,
   AuthoringQuestion,
-  TakingQuestion
 } from "./types";
 
 export const quizzesApi = {
@@ -95,7 +92,7 @@ export const quizzesApi = {
     // Update quiz question count
     const qSnap = await getDocs(collection(db, `quizzes/${quizId}/questions`));
     let totalPoints = 0;
-    qSnap.forEach(d => totalPoints += d.data().points || 0);
+    qSnap.forEach(d => totalPoints += (d.data().points || 0));
     
     await updateDoc(doc(db, "quizzes", quizId), {
       questionCount: qSnap.size,
@@ -105,9 +102,7 @@ export const quizzesApi = {
   },
 
   async deleteQuestion(questionId: string): Promise<void> {
-    // Note: requires knowing quizId to update totals in a real implementation
-    // For this mock we'll just delete the document path directly if possible or do nothing.
-    // Given the API doesn't pass quizId, it's tricky in Firestore without a group query.
+    void questionId;
     console.warn("Delete question not fully implemented in mock without quizId");
   },
 
@@ -128,6 +123,7 @@ export const quizzesApi = {
   },
 
   async startAttempt(quizId: string): Promise<AttemptInProgress> {
+    void quizId;
     throw new Error("Start attempt not implemented in mock");
   },
 
@@ -137,14 +133,20 @@ export const quizzesApi = {
     selectedOptionIds: string[],
     textAnswer: string | null,
   ): Promise<void> {
-    // Mock save answer
+    void attemptId;
+    void questionId;
+    void selectedOptionIds;
+    void textAnswer;
   },
 
   async reorderQuestions(quizId: string, questionIds: string[]): Promise<QuizAuthoring> {
+    void quizId;
+    void questionIds;
     throw new Error("Not implemented");
   },
 
   async duplicateQuestion(questionId: string): Promise<void> {
+    void questionId;
     throw new Error("Not implemented");
   },
 
@@ -154,14 +156,20 @@ export const quizzesApi = {
     pointsAwarded: number,
     feedback: string | null,
   ): Promise<AttemptResult> {
+    void attemptId;
+    void answerId;
+    void pointsAwarded;
+    void feedback;
     throw new Error("Not implemented");
   },
 
   async submitAttempt(attemptId: string): Promise<AttemptResult> {
+    void attemptId;
     throw new Error("Not implemented");
   },
 
   async attemptResult(attemptId: string): Promise<AttemptResult> {
+    void attemptId;
     throw new Error("Not implemented");
   }
 };
