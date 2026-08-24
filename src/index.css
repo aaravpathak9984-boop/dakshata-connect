@@ -98,14 +98,14 @@
     height: 8px;
     width: 8px;
     margin: -4px 0 0 -4px;
-    background: hsl(var(--primary));
+    background: #ffffff;
   }
 
   .cursor-ring {
     height: 36px;
     width: 36px;
     margin: -18px 0 0 -18px;
-    border: 1.5px solid hsl(var(--primary) / 0.5);
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
     /*
       No "transform" here on purpose: it is rewritten every animation frame in JS, which already
       eases both position and scale. A CSS transition on the same property would smooth on top of
@@ -123,8 +123,8 @@
     declared in CSS on top of a JS-driven transform would simply never be seen.
   */
   .cursor-ring--active {
-    background: hsl(var(--primary) / 0.1);
-    border-color: hsl(var(--primary) / 0.8);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.8);
   }
 
   /*
