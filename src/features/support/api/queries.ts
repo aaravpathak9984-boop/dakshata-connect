@@ -48,8 +48,7 @@ export function useMyTickets() {
       } else {
         q = query(
           collection(db, "support_tickets"),
-          where("submittedById", "==", currentUid),
-          orderBy("createdAtUtc", "desc")
+          where("submittedById", "==", currentUid)
         );
       }
 
@@ -72,6 +71,10 @@ export function useMyTickets() {
           lastActivityAtUtc: data.lastActivityAtUtc || new Date().toISOString(),
         });
       });
+      
+      if (!isAdminRole) {
+        list.sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime());
+      }
       return list;
     },
     staleTime: 15_000,
