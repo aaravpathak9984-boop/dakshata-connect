@@ -16,10 +16,6 @@ export function useCourseContent(courseId: string) {
   });
 }
 
-/**
- * Every mutation below reshapes the tree that `useCourseContent` returns, so they all
- * invalidate the same course's detail key on success.
- */
 function useContentMutation<TVariables, TData>(
   courseId: string,
   mutationFn: (variables: TVariables) => Promise<TData>,
@@ -39,38 +35,44 @@ export function useCreateModule(courseId: string) {
 
 export function useUpdateModule(courseId: string) {
   return useContentMutation(courseId, ({ id, payload }: { id: string; payload: ModulePayload }) =>
-    contentApi.updateModule(id, payload),
+    contentApi.updateModule(courseId, id, payload),
   );
 }
 
 export function useDeleteModule(courseId: string) {
-  return useContentMutation(courseId, (moduleId: string) => contentApi.removeModule(moduleId));
+  return useContentMutation(courseId, (moduleId: string) => 
+    contentApi.removeModule(courseId, moduleId)
+  );
 }
 
 export function useReorderModules(courseId: string) {
-  return useContentMutation(courseId, (ids: string[]) => contentApi.reorderModules(courseId, ids));
+  return useContentMutation(courseId, (ids: string[]) => 
+    contentApi.reorderModules(courseId, ids)
+  );
 }
 
 export function useCreateLesson(courseId: string) {
   return useContentMutation(
     courseId,
     ({ moduleId, payload }: { moduleId: string; payload: LessonPayload }) =>
-      contentApi.createLesson(moduleId, payload),
+      contentApi.createLesson(courseId, moduleId, payload),
   );
 }
 
 export function useUpdateLesson(courseId: string) {
   return useContentMutation(courseId, ({ id, payload }: { id: string; payload: LessonPayload }) =>
-    contentApi.updateLesson(id, payload),
+    contentApi.updateLesson(courseId, id, payload),
   );
 }
 
 export function useDeleteLesson(courseId: string) {
-  return useContentMutation(courseId, (lessonId: string) => contentApi.removeLesson(lessonId));
+  return useContentMutation(courseId, (lessonId: string) => 
+    contentApi.removeLesson(courseId, lessonId)
+  );
 }
 
 export function useReorderLessons(courseId: string) {
   return useContentMutation(courseId, ({ moduleId, ids }: { moduleId: string; ids: string[] }) =>
-    contentApi.reorderLessons(moduleId, ids),
+    contentApi.reorderLessons(courseId, moduleId, ids),
   );
 }

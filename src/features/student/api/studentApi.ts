@@ -31,17 +31,33 @@ export const studentApi = {
       );
       const enrollSnapshot = await getDocs(enrollQuery);
       
+      // Fetch all courses in advance to map details
+      const coursesSnapshot = await getDocs(collection(db, "courses"));
+      const coursesMap = new Map<string, any>();
+      coursesSnapshot.forEach((docSnap) => {
+        coursesMap.set(docSnap.id, docSnap.data());
+      });
+
       const enrolledCourses: StudentCourse[] = [];
       const completedCourses: StudentCourse[] = [];
       const enrolledCourseIds = new Set<string>();
 
       enrollSnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        enrolledCourseIds.add(data.courseId);
+        const courseId = data.courseId || "";
+        enrolledCourseIds.add(courseId);
+
+        // Retrieve real modules/lessons details
+        const courseDocData = coursesMap.get(courseId);
+        const modules = courseDocData?.modules || [];
+        const moduleCount = modules.length;
+        const lessonCount = modules.reduce((sum: number, mod: any) => sum + (mod.lessons ? mod.lessons.length : 0), 0);
+        const totalMinutes = modules.reduce((sum: number, mod: any) => sum + (mod.lessons ? mod.lessons.reduce((lsum: number, les: any) => lsum + (les.durationMinutes || 0), 0) : 0), 0);
+        const firstLessonTitle = modules[0] && modules[0].lessons && modules[0].lessons[0] ? modules[0].lessons[0].title : null;
 
         const courseItem: StudentCourse = {
           enrollmentId: docSnap.id,
-          courseId: data.courseId || "",
+          courseId: courseId,
           title: data.courseTitle || "Atmospheric Course",
           code: data.courseCode || "MET-101",
           category: data.category || "General",
@@ -50,10 +66,10 @@ export const studentApi = {
           lecturerName: data.lecturerName || "Instructor",
           status: data.status || "Active",
           progressPercent: data.progressPercent || 0,
-          moduleCount: 4,
-          lessonCount: 12,
-          totalMinutes: 180,
-          firstLessonTitle: "Module 1 Overview",
+          moduleCount: moduleCount || 1, 
+          lessonCount: lessonCount || 5,  
+          totalMinutes: totalMinutes || 120, 
+          firstLessonTitle: firstLessonTitle || (modules[0] ? modules[0].title : "Course Introduction"),
           enrolledAtUtc: data.enrolledAtUtc || new Date().toISOString(),
           completedAtUtc: data.status === "Completed" ? (data.completedAtUtc || new Date().toISOString()) : null,
         };
@@ -65,14 +81,16 @@ export const studentApi = {
         }
       });
 
-      // 2. Fetch all courses to calculate recommendations
-      const coursesSnapshot = await getDocs(collection(db, "courses"));
+      // 2. Calculate recommendations
       const recommended: RecommendedCourse[] = [];
 
       coursesSnapshot.forEach((docSnap) => {
         const data = docSnap.data();
         // Recommend courses that the user is not currently enrolled in
         if (!enrolledCourseIds.has(docSnap.id) && data.status === "Published") {
+          const modules = data.modules || [];
+          const lessonCount = modules.reduce((sum: number, mod: any) => sum + (mod.lessons ? mod.lessons.length : 0), 0);
+
           recommended.push({
             courseId: docSnap.id,
             title: data.title || "",
@@ -83,7 +101,7 @@ export const studentApi = {
             coverImageUrl: data.coverImageUrl || null,
             lecturerName: data.lecturerName || "Subject Expert",
             enrolledCount: data.activeEnrolments || 0,
-            lessonCount: 12,
+            lessonCount: lessonCount || 5,
           });
         }
       });

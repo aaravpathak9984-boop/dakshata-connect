@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, Clock, Layers, Minus, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,14 @@ interface ContinueLearningCardProps {
  * this control should give way to it.
  */
 export function ContinueLearningCard({ course, onProgressChange, isSaving }: ContinueLearningCardProps) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("a")) return;
+    navigate(`/courses/${course.courseId}`);
+  };
+
   const step = (delta: number) =>
     onProgressChange(course.enrollmentId, snapToStep(course.progressPercent + delta));
 
@@ -32,6 +41,8 @@ export function ContinueLearningCard({ course, onProgressChange, isSaving }: Con
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       className="flex flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-soft"
+      onClick={handleCardClick}
+      style={{ cursor: "pointer" }}
     >
       <CourseImage
         code={course.code}

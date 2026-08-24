@@ -176,7 +176,60 @@ export const seedDatabase = async (currentUser?: any) => {
       lecturerName: "Dr. Rajesh Verma",
       requiredSkills: ["Doppler Radar"],
       activeEnrolments: 2,
-      createdAtUtc: nowString
+      createdAtUtc: nowString,
+      modules: [
+        {
+          id: "mod_cy_01",
+          courseId: "course_cyclone",
+          title: "Introduction to Tropical Cyclones",
+          description: "Basic thermodynamics, core structure, and dynamics of cyclone genesis.",
+          sortOrder: 1,
+          lessons: [
+            {
+              id: "les_cy_11",
+              moduleId: "mod_cy_01",
+              title: "Eye and Eyewall Structure",
+              type: "Text",
+              contentUrl: null,
+              textContent: "The eye of a tropical cyclone is a roughly circular area of comparatively light winds and fair weather found at the center of a severe tropical cyclone. It is surrounded by the eyewall, a ring of towering thunderstorms where the most severe weather and highest winds occur.",
+              durationMinutes: 15,
+              sortOrder: 1,
+              isPreview: true
+            },
+            {
+              id: "les_cy_12",
+              moduleId: "mod_cy_01",
+              title: "Cyclone Thermodynamic Cycles",
+              type: "Pdf",
+              contentUrl: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+              textContent: null,
+              durationMinutes: 20,
+              sortOrder: 2,
+              isPreview: false
+            }
+          ]
+        },
+        {
+          id: "mod_cy_02",
+          courseId: "course_cyclone",
+          title: "Radar and Satellite Tracking Techniques",
+          description: "Doppler radar arrays, infrared sweeps, and satellite data assimilation.",
+          sortOrder: 2,
+          lessons: [
+            {
+              id: "les_cy_21",
+              moduleId: "mod_cy_02",
+              title: "Doppler Velocity Interpretation",
+              type: "Video",
+              contentUrl: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+              textContent: null,
+              durationMinutes: 30,
+              sortOrder: 1,
+              isPreview: false
+            }
+          ]
+        }
+      ]
     });
 
     await setItem("courses", "course_disaster", {
@@ -192,7 +245,29 @@ export const seedDatabase = async (currentUser?: any) => {
       lecturerName: "Prof. Sunita Reddy",
       requiredSkills: ["Marine Forecasting"],
       activeEnrolments: 1,
-      createdAtUtc: nowString
+      createdAtUtc: nowString,
+      modules: [
+        {
+          id: "mod_di_01",
+          courseId: "course_disaster",
+          title: "Coastal Vulnerability and Storm Surges",
+          description: "Physics of storm surge formation, coastal bathymetry, and inundation modeling.",
+          sortOrder: 1,
+          lessons: [
+            {
+              id: "les_di_11",
+              moduleId: "mod_di_01",
+              title: "Bathymetry Effects on Wave Runup",
+              type: "Text",
+              contentUrl: null,
+              textContent: "Shallow coastal bathymetry significantly amplifies incoming waves and surge height due to frictional shoaling. Understanding the local depth profile is critical for accurate surge prediction models.",
+              durationMinutes: 15,
+              sortOrder: 1,
+              isPreview: true
+            }
+          ]
+        }
+      ]
     });
 
     await setItem("courses", "course_satellite", {
@@ -208,7 +283,29 @@ export const seedDatabase = async (currentUser?: any) => {
       lecturerName: "Dr. Amit Patel",
       requiredSkills: ["GIS Mapping"],
       activeEnrolments: 1,
-      createdAtUtc: nowString
+      createdAtUtc: nowString,
+      modules: [
+        {
+          id: "mod_sa_01",
+          courseId: "course_satellite",
+          title: "Principles of Remote Sensing",
+          description: "Electromagnetic spectrum, sensors, and satellite orbits.",
+          sortOrder: 1,
+          lessons: [
+            {
+              id: "les_sa_11",
+              moduleId: "mod_sa_01",
+              title: "Electromagnetic Spectrum Basics",
+              type: "Text",
+              contentUrl: null,
+              textContent: "Remote sensing instruments measure reflected or emitted electromagnetic radiation. The bands of interest typically include visible, near-infrared, thermal, and microwave sweeps.",
+              durationMinutes: 10,
+              sortOrder: 1,
+              isPreview: true
+            }
+          ]
+        }
+      ]
     });
 
     // ==================== C. ENROLLMENTS ====================
