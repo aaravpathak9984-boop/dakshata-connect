@@ -45,6 +45,7 @@ export function SubmissionsDialog({ assignment, open, onClose }: SubmissionsDial
     const draft = drafts[submissionId];
     if (!draft) return;
     grade.mutate({
+      assignmentId: assignment.id,
       submissionId,
       pointsAwarded: Number(draft.points),
       feedback: draft.feedback.trim() || null,

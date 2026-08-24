@@ -81,14 +81,16 @@ export function useGradeSubmission() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
+      assignmentId,
       submissionId,
       pointsAwarded,
       feedback,
     }: {
+      assignmentId: string;
       submissionId: string;
       pointsAwarded: number;
       feedback: string | null;
-    }) => assessmentsApi.grade(submissionId, pointsAwarded, feedback),
+    }) => assessmentsApi.grade(assignmentId, submissionId, pointsAwarded, feedback),
     // Marking moves the gradebook and the assignment tallies as well as the roster.
     onSuccess: () => queryClient.invalidateQueries({ queryKey: assessmentKeys.all }),
   });
