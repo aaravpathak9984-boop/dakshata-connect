@@ -1,0 +1,34 @@
+export type CourseLevel = "Beginner" | "Intermediate" | "Advanced";
+export type CourseStatus = "Draft" | "Published";
+
+/** Mirrors the backend `CourseDto`. */
+export interface Course {
+  id: string;
+  title: string;
+  code: string;
+  description: string | null;
+  category: string;
+  level: CourseLevel;
+  status: CourseStatus;
+  price: number;
+  coverImageUrl: string | null;
+  departmentId: string | null;
+  departmentName: string | null;
+  lecturerId: string;
+  lecturerName: string;
+  createdAtUtc: string;
+  requiredSkills?: string[];
+}
+
+export interface CreateCoursePayload {
+  departmentId?: string | null;
+  title: string;
+  code: string;
+  description?: string | null;
+  category: string;
+  level: CourseLevel;
+  status: CourseStatus;
+  price: number;
+  coverImageUrl?: string | null;
+  requiredSkills?: string[];
+}

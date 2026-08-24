@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dakshata Connect theme tokens. Values are HSL channels consumed as hsl(var(--token)). */
+@layer base {
+  :root {
+    --background: 210 40% 98%;        /* #F8FAFC light gray */
+    --foreground: 215 28% 17%;        /* #1F2937 dark text */
+
+    --card: 0 0% 100%;                /* #FFFFFF */
+    --card-foreground: 215 28% 17%;
+
+    --primary: 346.8 77.2% 49.8%;          /* #E11D48 (Crimson Red) */
+    --primary-foreground: 355.7 100% 97.3%;
+
+    --accent: 346.8 77.2% 95%;
+    --accent-foreground: 346.8 77.2% 49.8%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --destructive: 0 84% 60%;         /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;           /* #22C55E */
+    --warning: 38 92% 50%;            /* #F59E0B */
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 346.8 77.2% 49.8%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 30% 8%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 25% 11%;
+    --card-foreground: 210 40% 96%;
+
+    --primary: 346.8 77.2% 49.8%;          /* #E11D48 */
+    --primary-foreground: 355.7 100% 97.3%;
+
+    --accent: 346.8 30% 18%;
+    --accent-foreground: 346.8 77.2% 65%;
+
+    --muted: 217 25% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 60% 45%;
+    --warning: 38 85% 55%;
+
+    --border: 217 25% 20%;
+    --input: 217 25% 20%;
+    --ring: 346.8 77.2% 49.8%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@layer components {
+  /*
+    Custom cursor: a tight dot plus a trailing ring, driven by CursorField. The native cursor is
+    hidden here rather than by a JS-toggled class, so there is no frame where neither cursor is
+    visible while the component's effect is still warming up. Untouched on touch/stylus input and
+    when the OS asks for reduced motion — a shape trailing the finger is exactly that motion.
+  */
+  @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    body {
+      cursor: none;
+    }
+  }
+
+  .cursor-dot,
+  .cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    border-radius: 9999px;
+    transition: opacity 0.2s ease;
+    will-change: transform;
+  }
+
+  .cursor-dot {
+    height: 8px;
+    width: 8px;
+    margin: -4px 0 0 -4px;
+    background: hsl(var(--primary));
+  }
+
+  .cursor-ring {
+    height: 36px;
+    width: 36px;
+    margin: -18px 0 0 -18px;
+    border: 1.5px solid hsl(var(--primary) / 0.5);
+    /*
+      No "transform" here on purpose: it is rewritten every animation frame in JS, which already
+      eases both position and scale. A CSS transition on the same property would smooth on top of
+      an already-smoothed value and read as sluggish rather than as one clean motion.
+    */
+    transition:
+      opacity 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  /*
+    Scale lives in JS, not here: the ring's transform is rewritten every animation frame to move
+    it, and an inline style always wins over a class's rule for the same property, so a scale
+    declared in CSS on top of a JS-driven transform would simply never be seen.
+  */
+  .cursor-ring--active {
+    background: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary) / 0.8);
+  }
+
+  /*
+    Fade a photograph in once it decodes rather than letting it pop over the gradient
+    underneath it.
+  */
+  .image-fade-in {
+    animation: image-fade-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes image-fade-in {
+    from {
+      opacity: 0;
+      transform: scale(1.02);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/*
+  The CSS half of the reduced-motion promise. Framer Motion is handled by the MotionConfig in
+  App; this covers plain CSS transitions, keyframes and smooth scrolling, which that cannot see.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

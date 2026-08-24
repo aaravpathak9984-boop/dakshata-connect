@@ -1,0 +1,53 @@
+# ---------- .NET ----------
+bin/
+obj/
+publish/
+App_Data/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+artifacts/
+*.nupkg
+project.lock.json
+TestResults/
+coverage/
+*.trx
+
+# ---------- Node / Frontend ----------
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# ---------- Environment / Secrets ----------
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+secrets.json
+*.pfx
+demo-accounts.txt
+
+# ---------- IDE / OS ----------
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---------- Logs ----------
+logs/
+*.log
+
+# ---------- Docker ----------
+.docker-data/
+
+# ---------- Local tooling ----------
+.claude/settings.local.json
+.claude/worktrees/
