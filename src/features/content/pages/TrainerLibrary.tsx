@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { 
   collection, 
@@ -10,12 +10,6 @@ import {
   orderBy, 
   onSnapshot 
 } from "firebase/firestore";
-import { 
-  ref, 
-  uploadBytesResumable, 
-  getDownloadURL, 
-  deleteObject 
-} from "firebase/storage";
 import { 
   FileText, 
   Video, 
@@ -156,52 +150,59 @@ export function TrainerLibrary() {
 
     setError(null);
     setUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(10);
 
-    const storagePath = `trainer_materials/${Date.now()}_${selectedFile.name}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+    try {
+      // Create FormData for Cloudinary
+      const data = new FormData();
+      data.append("file", selectedFile);
+      data.append("upload_preset", "ml_default");
+      data.append("resource_type", "auto");
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-        setUploadProgress(progress);
-      },
-      (err) => {
-        console.error("Storage upload failed:", err);
-        setError("File upload failed. Please try again.");
-        setUploading(false);
-      },
-      async () => {
-        try {
-          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          
-          await addDoc(collection(db, "trainer_library"), {
-            title: customTitle.trim(),
-            fileUrl: downloadUrl,
-            uploadedBy: user?.fullName || "Trainer",
-            uploadedById: user?.id || "",
-            uploadedAt: new Date().toISOString(),
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
-            fileType: selectedFile.type,
-            storagePath: storagePath
-          });
+      setUploadProgress(40);
 
-          // Reset upload form
-          setSelectedFile(null);
-          setCustomTitle("");
-          setUploading(false);
-        } catch (dbErr) {
-          console.error("Failed to record document metadata:", dbErr);
-          setError("Failed to record material information.");
-          setUploading(false);
-        }
+      // Start Upload to specific Cloudinary environment
+      const res = await fetch("https://api.cloudinary.com/v1_1/lf1qnjqx/auto/upload", {
+        method: "POST",
+        body: data,
+      });
+      
+      if (!res.ok) {
+        throw new Error("Cloudinary upload failed");
       }
-    );
+
+      setUploadProgress(70);
+
+      const uploadedFile = await res.json();
+      const fileUrl = uploadedFile.secure_url;
+
+      setUploadProgress(90);
+
+      // Save to Firestore
+      await addDoc(collection(db, "trainer_library"), { 
+        title: customTitle.trim(), 
+        fileUrl: fileUrl, 
+        uploadedBy: user?.fullName || "Trainer", 
+        uploadedById: user?.id || "",
+        uploadedAt: new Date().toISOString(),
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type,
+        storagePath: ""
+      });
+
+      setUploadProgress(100);
+
+      // Reset upload form
+      setSelectedFile(null);
+      setCustomTitle("");
+      setUploading(false);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError("Cloudinary upload failed. Please try again.");
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   // Delete Action
@@ -211,15 +212,7 @@ export function TrainerLibrary() {
     setError(null);
 
     try {
-      // 1. Delete object from Storage if path exists
-      if (materialToDelete.storagePath) {
-        const storageRef = ref(storage, materialToDelete.storagePath);
-        await deleteObject(storageRef).catch((e) => {
-          console.warn("Storage object might already be deleted:", e);
-        });
-      }
-
-      // 2. Delete document from Firestore
+      // Delete document from Firestore
       await deleteDoc(doc(db, "trainer_library", materialToDelete.id));
       setMaterialToDelete(null);
     } catch (err) {
