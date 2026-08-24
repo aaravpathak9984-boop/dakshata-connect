@@ -4,6 +4,10 @@ import { db } from "./firebase";
 export const seedDatabase = async (currentUser?: any) => {
   const nowString = new Date().toISOString();
 
+  if (!currentUser?.roles?.includes("Admin") && currentUser?.role !== "Admin") {
+    throw new Error("Only an existing administrator can seed the demo database.");
+  }
+
   const setItem = async (collectionName: string, docId: string, data: any) => {
     try {
       const docRef = doc(db, collectionName, docId);
@@ -18,15 +22,6 @@ export const seedDatabase = async (currentUser?: any) => {
   };
 
   try {
-    // Ensure currently logged-in user has Admin role synced
-    if (currentUser?.id) {
-      await setItem("users", currentUser.id, {
-        role: "Admin",
-        roles: ["Admin"],
-        isApproved: true,
-        isActive: true
-      });
-    }
     // ==================== A. USERS ====================
 
     // 1. Admin

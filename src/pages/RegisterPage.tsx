@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MailCheck, ShieldOff } from "lucide-react";
+import { MailCheck } from "lucide-react";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { RegisterForm } from "@/features/auth/RegisterForm";
 import { Alert } from "@/components/ui/alert";

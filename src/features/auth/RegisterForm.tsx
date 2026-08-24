@@ -14,7 +14,7 @@ import type { AuthenticationResponse } from "@/types/auth";
 export function RegisterForm({
   onRegistered,
 }: {
-  onRegistered: (email: string, role: "Trainee" | "Trainer" | "Admin") => void;
+  onRegistered: (email: string, role: "Trainee" | "Trainer") => void;
 }) {
   const navigate = useNavigate();
   const { setSession } = useAuth();
@@ -93,7 +93,6 @@ export function RegisterForm({
             <option value="">Select a role...</option>
             <option value="Trainee">Trainee (Student)</option>
             <option value="Trainer">Trainer (Lecturer)</option>
-            <option value="Admin">Admin (Administrator)</option>
           </select>
           {errors.role?.message && (
             <p className="text-xs font-medium text-destructive">

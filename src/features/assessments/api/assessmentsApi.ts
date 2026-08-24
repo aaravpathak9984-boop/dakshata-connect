@@ -9,7 +9,7 @@ import {
   setDoc, 
   updateDoc, 
   where,
-  increment
+  increment,
 } from "firebase/firestore";
 import type { Assignment, AssignmentInput, Gradebook, GradebookCell, GradebookColumn, GradebookRow, GradebookSummary, Submission, CellStatus } from "./types";
 
@@ -169,10 +169,6 @@ export const assessmentsApi = {
     };
 
     await setDoc(subRef, subData);
-
-    await updateDoc(doc(db, "assignments", assignmentId), {
-      submissionCount: increment(1),
-    });
 
     return {
       id: subRef.id,

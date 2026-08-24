@@ -20,7 +20,7 @@ export function toCsv<T>(rows: T[], columns: ReportColumn<T>[]): string {
 
 /** Triggers a browser download of a CSV string. A UTF-8 BOM is prepended so Excel opens it correctly. */
 export function downloadCsv(filename: string, csv: string): void {
-  const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

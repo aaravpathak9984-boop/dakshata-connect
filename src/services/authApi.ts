@@ -34,7 +34,7 @@ export const authApi = {
 
     // 3. Save profile in Firestore users collection
     const uid = firebaseUser.uid;
-    const isApproved = payload.role !== "Trainer"; // Trainees and Admins auto-approved; Trainers require admin approval
+    const isApproved = payload.role !== "Trainer"; // Trainers require administrator approval.
 
     const userDocData = {
       id: uid,
@@ -123,7 +123,7 @@ export const authApi = {
     };
   },
 
-  async signInWithGoogle(defaultRole: "Trainee" | "Trainer" | "Admin" = "Trainee"): Promise<AuthenticationResponse> {
+  async signInWithGoogle(defaultRole: "Trainee" | "Trainer" = "Trainee"): Promise<AuthenticationResponse> {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 
@@ -272,8 +272,10 @@ export const authApi = {
     };
   },
 
-  async verifyEmail(_userId: string, _token: string): Promise<void> {
+  async verifyEmail(userId: string, token: string): Promise<void> {
     // No-op for serverless Firebase setup
+    void userId;
+    void token;
     return Promise.resolve();
   },
 

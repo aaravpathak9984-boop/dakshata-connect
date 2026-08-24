@@ -144,12 +144,6 @@ export const enrollmentsApi = {
 
     const docRef = await addDoc(collection(db, "enrollments"), newEnrollData);
 
-    // Increment active enrolments
-    const newEnrolmentsCount = (courseData.activeEnrolments || 0) + 1;
-    await updateDoc(doc(db, "courses", courseId), {
-      activeEnrolments: newEnrolmentsCount
-    });
-
     return {
       id: docRef.id,
       ...newEnrollData,
@@ -232,22 +226,8 @@ export const enrollmentsApi = {
     const enrollSnap = await getDoc(enrollRef);
     if (!enrollSnap.exists()) return;
     
-    const data = enrollSnap.data();
-    const courseId = data.courseId;
-
     // Delete enrollment document
     await deleteDoc(enrollRef);
-
-    // Decrement course active enrolments count
-    if (courseId) {
-      const courseRef = doc(db, "courses", courseId);
-      const courseSnap = await getDoc(courseRef);
-      if (courseSnap.exists()) {
-        const courseData = courseSnap.data();
-        const newEnrolmentsCount = Math.max(0, (courseData.activeEnrolments || 0) - 1);
-        await updateDoc(courseRef, { activeEnrolments: newEnrolmentsCount });
-      }
-    }
   },
 
   async roster(courseId: string): Promise<Enrollment[]> {

@@ -26,7 +26,7 @@ export interface RegisterPayload {
   firstName: string;
   lastName: string;
   email: string;
-  role: "Trainee" | "Trainer" | "Admin";
+  role: "Trainee" | "Trainer";
   password: string;
 }
 
