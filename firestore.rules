@@ -113,6 +113,17 @@ service cloud.firestore {
       }
     }
 
+    // 4a. Quizzes & Questions
+    match /quizzes/{quizId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && (isApprovedTrainer() || isAdmin());
+
+      match /questions/{questionId} {
+        allow read: if isAuthenticated();
+        allow create, update, delete: if isAuthenticated() && (isApprovedTrainer() || isAdmin());
+      }
+    }
+
     // 4b. Assignments & submissions (used by the assignment manager and gradebook).
     match /assignments/{assignmentId} {
       allow read: if isAuthenticated();
