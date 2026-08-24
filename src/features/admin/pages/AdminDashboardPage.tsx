@@ -39,7 +39,7 @@ export function AdminDashboardPage() {
     setSeeding(true);
     try {
       const { seedDatabase } = await import("@/lib/seedDatabase");
-      await seedDatabase();
+      await seedDatabase(user);
       alert("Dakshata Connect mock database records batch committed successfully!");
       window.location.reload();
     } catch (err) {

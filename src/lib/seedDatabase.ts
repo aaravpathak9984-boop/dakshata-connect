@@ -1,7 +1,7 @@
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
-export const seedDatabase = async () => {
+export const seedDatabase = async (currentUser?: any) => {
   const nowString = new Date().toISOString();
 
   const setItem = async (collectionName: string, docId: string, data: any) => {
@@ -9,12 +9,24 @@ export const seedDatabase = async () => {
       const docRef = doc(db, collectionName, docId);
       await setDoc(docRef, data, { merge: true });
     } catch (err) {
-      console.error(`Failed to set document ${collectionName}/${docId}:`, err);
+      console.warn(`Non-blocking warning: Failed to set document ${collectionName}/${docId}:`, err);
+      if (collectionName === "users") {
+        return; // Skip throwing for users collection to ensure other sections get seeded
+      }
       throw err;
     }
   };
 
   try {
+    // Ensure currently logged-in user has Admin role synced
+    if (currentUser?.id) {
+      await setItem("users", currentUser.id, {
+        role: "Admin",
+        roles: ["Admin"],
+        isApproved: true,
+        isActive: true
+      });
+    }
     // ==================== A. USERS ====================
 
     // 1. Admin
