@@ -53,6 +53,7 @@ export function RegisterPage() {
     );
   }
 
+  /*
   if (platform && !platform.allowNewRegistrations) {
     return (
       <AuthLayout
@@ -86,6 +87,7 @@ export function RegisterPage() {
       </AuthLayout>
     );
   }
+  */
 
   return (
     <AuthLayout
