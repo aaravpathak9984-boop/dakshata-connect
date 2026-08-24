@@ -10,6 +10,7 @@ import {
   onSnapshot, 
   getDocs, 
   addDoc,
+  updateDoc,
   where
 } from "firebase/firestore";
 import { 
@@ -17,6 +18,7 @@ import {
   Plus, 
   Calendar, 
   Trash2, 
+  Pencil,
   BookOpen, 
   CheckCircle2, 
   AlertCircle, 
@@ -39,6 +41,7 @@ interface Question {
 interface Assessment {
   id: string;
   title: string;
+  courseId?: string;
   deadline: string;
   questions: Question[];
   createdAt: string;
@@ -70,6 +73,7 @@ export function AssessmentsPage({ only }: AssessmentsPageProps) {
   // View control
   const [viewState, setViewState] = useState<"list" | "builder" | "attempt">("list");
   const [activeAssessment, setActiveAssessment] = useState<Assessment | null>(null);
+  const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
 
   const isTrainerOrAdmin = user?.roles.some(
     (role) => role === "Trainer" || role === "Admin"
@@ -154,7 +158,13 @@ export function AssessmentsPage({ only }: AssessmentsPageProps) {
               </div>
 
               {isTrainerOrAdmin && (
-                <Button size="sm" onClick={() => setViewState("builder")}>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    setEditingAssessment(null);
+                    setViewState("builder");
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Create Quiz
                 </Button>
@@ -225,14 +235,27 @@ export function AssessmentsPage({ only }: AssessmentsPageProps) {
 
                       <div className="flex items-center gap-2 self-end sm:self-center">
                         {isTrainerOrAdmin && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => handleDeleteAssessment(ass.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-muted-foreground hover:bg-muted hover:text-foreground"
+                              onClick={() => {
+                                setEditingAssessment(ass);
+                                setViewState("builder");
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => handleDeleteAssessment(ass.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
 
                         {submission ? (
@@ -265,7 +288,13 @@ export function AssessmentsPage({ only }: AssessmentsPageProps) {
         )}
 
         {viewState === "builder" && (
-          <AssessmentBuilder onBack={() => setViewState("list")} />
+          <AssessmentBuilder 
+            assessment={editingAssessment} 
+            onBack={() => {
+              setViewState("list");
+              setEditingAssessment(null);
+            }} 
+          />
         )}
 
         {viewState === "attempt" && activeAssessment && (
@@ -283,7 +312,7 @@ export function AssessmentsPage({ only }: AssessmentsPageProps) {
 }
 
 /* ==================== ASSESSMENT BUILDER (TRAINER VIEW) ==================== */
-function AssessmentBuilder({ onBack }: { onBack: () => void }) {
+function AssessmentBuilder({ assessment, onBack }: { assessment: Assessment | null; onBack: () => void }) {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -315,7 +344,7 @@ function AssessmentBuilder({ onBack }: { onBack: () => void }) {
           list.push({ id: d.id, ...d.data() });
         });
         setTrainerCourses(list);
-        if (list.length > 0) {
+        if (list.length > 0 && !assessment) {
           setCourseId(list[0].id);
         }
       } catch (err) {
@@ -323,7 +352,31 @@ function AssessmentBuilder({ onBack }: { onBack: () => void }) {
       }
     };
     fetchCourses();
-  }, [user]);
+  }, [user, assessment]);
+
+  // Prepopulate form if editing
+  useEffect(() => {
+    if (assessment) {
+      setTitle(assessment.title);
+      setCourseId(assessment.courseId || "");
+      setQuestions(assessment.questions || []);
+      if (assessment.deadline) {
+        try {
+          const d = new Date(assessment.deadline);
+          const formatted = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16);
+          setDeadline(formatted);
+        } catch (e) {
+          console.warn("Could not parse deadline:", e);
+        }
+      }
+    } else {
+      setTitle("");
+      setDeadline("");
+      setQuestions([]);
+    }
+  }, [assessment]);
 
   const addQuestion = () => {
     if (!qText.trim() || options.some(opt => !opt.trim())) {
@@ -350,6 +403,13 @@ function AssessmentBuilder({ onBack }: { onBack: () => void }) {
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
+  const handleEditQuestion = (q: Question) => {
+    setQText(q.question);
+    setOptions([...q.options]);
+    setCorrectIndex(q.correctIndex);
+    setQuestions(questions.filter((item) => item.id !== q.id));
+  };
+
   const handleSaveAssessment = async () => {
     if (!title.trim() || !deadline) {
       setError("Please specify a title and a deadline.");
@@ -364,15 +424,21 @@ function AssessmentBuilder({ onBack }: { onBack: () => void }) {
     setError(null);
 
     try {
-      await addDoc(collection(db, "assessments"), {
+      const quizData = {
         title: title.trim(),
         courseId,
         deadline: new Date(deadline).toISOString(),
         questions,
-        createdAt: new Date().toISOString(),
-        createdBy: user?.fullName || "Trainer",
-        createdById: user?.id || ""
-      });
+        createdAt: assessment ? (assessment.createdAt || new Date().toISOString()) : new Date().toISOString(),
+        createdBy: assessment ? (assessment.createdBy || user?.fullName || "Trainer") : (user?.fullName || "Trainer"),
+        createdById: assessment ? (assessment.createdById || user?.id || "") : (user?.id || "")
+      };
+
+      if (assessment) {
+        await updateDoc(doc(db, "assessments", assessment.id), quizData);
+      } else {
+        await addDoc(collection(db, "assessments"), quizData);
+      }
       onBack();
     } catch (err) {
       console.error("Save assessment failed:", err);
@@ -388,7 +454,7 @@ function AssessmentBuilder({ onBack }: { onBack: () => void }) {
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-xl font-bold">Build MCQ Quiz</h2>
+        <h2 className="text-xl font-bold">{assessment ? "Edit MCQ Quiz" : "Build MCQ Quiz"}</h2>
       </div>
 
       {error && <Alert variant="error">{error}</Alert>}
@@ -497,14 +563,24 @@ function AssessmentBuilder({ onBack }: { onBack: () => void }) {
                     ))}
                   </ul>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  onClick={() => removeQuestion(q.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground"
+                    onClick={() => handleEditQuestion(q)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => removeQuestion(q.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
