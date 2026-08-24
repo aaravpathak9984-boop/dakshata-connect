@@ -6,6 +6,7 @@ import { CourseImage } from "@/components/ui/course-image";
 import { staggerItem } from "@/lib/motion";
 import { formatNumber } from "@/lib/format";
 import { coverGradient, levelVariant } from "../lib/courseVisuals";
+import { useNavigate } from "react-router-dom";
 import type { CatalogCourse } from "../api/types";
 
 interface CatalogCardProps {
@@ -16,6 +17,14 @@ interface CatalogCardProps {
 
 /** A single catalogue tile with the join action and the caller's enrolment state. */
 export function CatalogCard({ course, isEnrolling, onEnroll }: CatalogCardProps) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("a")) return;
+    navigate(`/courses/${course.id}`);
+  };
+
   return (
     <motion.div
       layout
@@ -24,6 +33,8 @@ export function CatalogCard({ course, isEnrolling, onEnroll }: CatalogCardProps)
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       className="flex flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-soft"
+      onClick={handleCardClick}
+      style={{ cursor: "pointer" }}
     >
       <CourseImage
         code={course.code}

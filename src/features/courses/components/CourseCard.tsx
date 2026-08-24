@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, ClipboardList, Layers, ListChecks, Pencil, Trash2, User, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,14 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course, canManage, onEdit, onDelete }: CourseCardProps) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("a") || target.closest("button")) return;
+    navigate(`/courses/${course.id}`);
+  };
+
   return (
     <motion.div
       layout
@@ -49,6 +57,8 @@ export function CourseCard({ course, canManage, onEdit, onDelete }: CourseCardPr
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       className="flex flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-soft"
+      onClick={handleCardClick}
+      style={{ cursor: "pointer" }}
     >
       <CourseImage
         code={course.code}

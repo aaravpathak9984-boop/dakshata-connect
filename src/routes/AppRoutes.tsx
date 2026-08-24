@@ -33,6 +33,12 @@ const MyCoursesPage = lazy(() =>
 const CourseDetailsPage = lazy(() =>
   import("@/features/enrollments/pages/CourseDetailsPage").then((m) => ({ default: m.CourseDetailsPage })),
 );
+const CourseDetailView = lazy(() =>
+  import("@/features/courses/pages/CourseDetailView").then((m) => ({ default: m.CourseDetailView })),
+);
+const TraineeProgressTracker = lazy(() =>
+  import("@/features/courses/pages/TraineeProgressTracker").then((m) => ({ default: m.TraineeProgressTracker })),
+);
 const CourseRosterPage = lazy(() =>
   import("@/features/enrollments/pages/CourseRosterPage").then((m) => ({ default: m.CourseRosterPage })),
 );
@@ -200,6 +206,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="/courses/:courseId"
+          element={
+            <Suspense fallback={<FullScreenLoader />}>
+              <CourseDetailView />
+            </Suspense>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <Suspense fallback={<FullScreenLoader />}>
@@ -281,6 +295,14 @@ export function AppRoutes() {
             element={
               <Suspense fallback={<FullScreenLoader />}>
                 <CoursesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="progress"
+            element={
+              <Suspense fallback={<FullScreenLoader />}>
+                <TraineeProgressTracker />
               </Suspense>
             }
           />

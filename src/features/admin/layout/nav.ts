@@ -41,6 +41,7 @@ export const navGroups: NavGroup[] = [
     heading: "Learning Hub",
     items: [
       { label: "Course Catalog", icon: BookOpen, href: "/admin/courses" },
+      { label: "Trainee Progress", icon: Users, href: "/admin/progress", roles: ["Admin", "Trainer"] },
       { label: "Trainer Library", icon: Library, href: "/admin/content" },
       { label: "MCQ Assessments", icon: FileQuestion, href: "/admin/assessments" },
     ],
