@@ -1,28 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, Layers, Minus, Plus } from "lucide-react";
+import { BookOpen, Clock, Layers } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CourseImage } from "@/components/ui/course-image";
-import { Button } from "@/components/ui/button";
+
 import { Progress } from "@/components/ui/progress";
 import { coverGradient, levelVariant } from "@/features/enrollments/lib/courseVisuals";
 import { staggerItem } from "@/lib/motion";
 import type { StudentCourse } from "../api/types";
-import { formatDuration, snapToStep } from "../lib/learning";
+import { formatDuration } from "../lib/learning";
 
 interface ContinueLearningCardProps {
   course: StudentCourse;
-  /** Records a new percentage for this enrolment. */
-  onProgressChange: (enrollmentId: string, progressPercent: number) => void;
-  isSaving: boolean;
 }
 
 /**
- * A course still in progress, with a quick control to nudge the recorded percentage. Progress
- * moves in 5% steps because there is no lesson-level completion tracking yet; when that lands
- * this control should give way to it.
+ * A course still in progress, displaying automatic progress percentage.
  */
-export function ContinueLearningCard({ course, onProgressChange, isSaving }: ContinueLearningCardProps) {
+export function ContinueLearningCard({ course }: ContinueLearningCardProps) {
   const navigate = useNavigate();
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -30,9 +25,6 @@ export function ContinueLearningCard({ course, onProgressChange, isSaving }: Con
     if (target.closest("button") || target.closest("a")) return;
     navigate(`/courses/${course.courseId}`);
   };
-
-  const step = (delta: number) =>
-    onProgressChange(course.enrollmentId, snapToStep(course.progressPercent + delta));
 
   return (
     <motion.div
@@ -94,35 +86,6 @@ export function ContinueLearningCard({ course, onProgressChange, isSaving }: Con
             <span className="font-semibold tabular-nums">{course.progressPercent}%</span>
           </div>
           <Progress value={course.progressPercent} label={course.title} />
-
-          <div className="mt-3 flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => step(-5)}
-              disabled={isSaving || course.progressPercent === 0}
-              aria-label={`Decrease progress for ${course.title}`}
-            >
-              <Minus className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => step(5)}
-              disabled={isSaving || course.progressPercent >= 100}
-              aria-label={`Increase progress for ${course.title}`}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              size="sm"
-              className="ml-auto"
-              onClick={() => onProgressChange(course.enrollmentId, 100)}
-              disabled={isSaving || course.progressPercent >= 100}
-            >
-              Mark complete
-            </Button>
-          </div>
         </div>
       </div>
     </motion.div>

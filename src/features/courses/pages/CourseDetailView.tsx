@@ -23,7 +23,9 @@ import {
   query, 
   where, 
   updateDoc, 
-  addDoc 
+  addDoc,
+  arrayUnion,
+  arrayRemove
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -315,25 +317,37 @@ export function CourseDetailView() {
     }
   };
 
-  // Mark Completed
-  const handleMarkCompleted = async () => {
-    if (!enrollment || updatingProgress) return;
+  // Toggle Lesson Completed
+  const handleToggleLesson = async (lessonId: string) => {
+    if (!enrollment || updatingProgress || !materials.length) return;
     setUpdatingProgress(true);
+    
     try {
+      const isCompleted = enrollment.completedLessons?.includes(lessonId);
+      const newCompletedLessons = isCompleted 
+        ? (enrollment.completedLessons || []).filter((id: string) => id !== lessonId)
+        : [...(enrollment.completedLessons || []), lessonId];
+        
+      const newProgressPercent = Math.round((newCompletedLessons.length / materials.length) * 100);
+      const isCourseCompleted = newProgressPercent >= 100;
+      
       const enrollRef = doc(db, "enrollments", enrollment.id);
       await updateDoc(enrollRef, {
-        progressPercent: 100,
-        status: "Completed",
-        completedAtUtc: new Date().toISOString()
+        completedLessons: isCompleted ? arrayRemove(lessonId) : arrayUnion(lessonId),
+        progressPercent: newProgressPercent,
+        status: isCourseCompleted ? "Completed" : "Active",
+        completedAtUtc: isCourseCompleted ? new Date().toISOString() : null
       });
+      
       setEnrollment((prev: any) => ({
         ...prev,
-        progressPercent: 100,
-        status: "Completed",
-        completedAtUtc: new Date().toISOString()
+        completedLessons: newCompletedLessons,
+        progressPercent: newProgressPercent,
+        status: isCourseCompleted ? "Completed" : "Active",
+        completedAtUtc: isCourseCompleted ? new Date().toISOString() : prev.completedAtUtc
       }));
     } catch (err) {
-      console.error("Failed to complete program:", err);
+      console.error("Failed to update progress:", err);
     } finally {
       setUpdatingProgress(false);
     }
@@ -466,15 +480,19 @@ export function CourseDetailView() {
             <div className="ml-2">
               {enrollment ? (
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+                    enrollment.status === "Completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                  }`}>
                     <Check className="h-3 w-3" />
-                    Enrolled ({enrollment.status})
+                    {enrollment.status}
                   </span>
-                  {enrollment.status !== "Completed" && (
-                    <Button variant="outline" size="sm" onClick={handleMarkCompleted} isLoading={updatingProgress} className="border-neutral-700 bg-neutral-900 text-white hover:bg-neutral-800">
-                      Mark as Completed
-                    </Button>
-                  )}
+                  <div className="flex flex-col gap-1 min-w-[100px] hidden sm:flex">
+                    <div className="flex justify-between text-[10px] text-neutral-400 font-medium">
+                      <span>Progress</span>
+                      <span>{enrollment.progressPercent}%</span>
+                    </div>
+                    <Progress value={enrollment.progressPercent} className="h-1.5" />
+                  </div>
                 </div>
               ) : (
                 <Button onClick={handleEnroll} isLoading={enrolling} className="bg-rose-600 hover:bg-rose-700 text-white">
@@ -584,19 +602,31 @@ export function CourseDetailView() {
                 <p className="text-sm text-neutral-400">No attachments or training resources uploaded for this category yet.</p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {materials.map((file) => (
-                    <div key={file.id} className="flex justify-between items-center p-4 rounded-lg border border-neutral-800 bg-neutral-900 text-sm">
-                      <div className="min-w-0">
-                        <span className="font-medium text-neutral-200 block truncate">{file.title}</span>
-                        <span className="text-[10px] text-neutral-400 block mt-1">
-                          {file.fileName} ({formatBytes(file.fileSize)})
-                        </span>
+                  {materials.map((file) => {
+                    const isDone = enrollment?.completedLessons?.includes(file.id);
+                    return (
+                      <div key={file.id} className="flex justify-between items-center p-4 rounded-lg border border-neutral-800 bg-neutral-900 text-sm">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <button 
+                            onClick={() => handleToggleLesson(file.id)}
+                            disabled={updatingProgress}
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${isDone ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-neutral-600 hover:border-neutral-400'} transition-colors disabled:opacity-50`}
+                          >
+                            {isDone && <Check className="h-3.5 w-3.5" />}
+                          </button>
+                          <div className="min-w-0">
+                            <span className={`font-medium block truncate ${isDone ? 'text-neutral-400 line-through' : 'text-neutral-200'}`}>{file.title}</span>
+                            <span className="text-[10px] text-neutral-400 block mt-1">
+                              {file.fileName} ({formatBytes(file.fileSize)})
+                            </span>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon" className="text-rose-500 hover:bg-neutral-800 shrink-0" onClick={() => window.open(file.fileUrl, "_blank")}>
+                          <Download className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="icon" className="text-rose-500 hover:bg-neutral-800" onClick={() => window.open(file.fileUrl, "_blank")}>
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

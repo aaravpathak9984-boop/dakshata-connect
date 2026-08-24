@@ -29,6 +29,7 @@ export interface Enrollment {
   progressPercent: number;
   enrolledAtUtc: string;
   completedAtUtc: string | null;
+  completedLessons?: string[];
 }
 
 /** Mirrors the backend `CourseCatalogDto`. */

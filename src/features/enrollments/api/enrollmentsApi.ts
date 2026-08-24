@@ -139,7 +139,8 @@ export const enrollmentsApi = {
       status: "Active" as const,
       progressPercent: 0,
       enrolledAtUtc: new Date().toISOString(),
-      completedAtUtc: null
+      completedAtUtc: null,
+      completedLessons: []
     };
 
     const docRef = await addDoc(collection(db, "enrollments"), newEnrollData);
@@ -149,7 +150,8 @@ export const enrollmentsApi = {
       ...newEnrollData,
       courseCategory: courseData.category || "General",
       courseLevel: courseData.level || "Beginner",
-      courseCoverImageUrl: courseData.coverImageUrl || null
+      courseCoverImageUrl: courseData.coverImageUrl || null,
+      completedLessons: []
     };
   },
 
@@ -180,7 +182,8 @@ export const enrollmentsApi = {
         status: (data.status || "Active") as EnrollmentStatus,
         progressPercent: data.progressPercent || 0,
         enrolledAtUtc: data.enrolledAtUtc || new Date().toISOString(),
-        completedAtUtc: data.completedAtUtc || null
+        completedAtUtc: data.completedAtUtc || null,
+        completedLessons: data.completedLessons || []
       });
     });
 
@@ -254,7 +257,8 @@ export const enrollmentsApi = {
         status: (data.status || "Active") as EnrollmentStatus,
         progressPercent: data.progressPercent || 0,
         enrolledAtUtc: data.enrolledAtUtc || new Date().toISOString(),
-        completedAtUtc: data.completedAtUtc || null
+        completedAtUtc: data.completedAtUtc || null,
+        completedLessons: data.completedLessons || []
       });
     });
 

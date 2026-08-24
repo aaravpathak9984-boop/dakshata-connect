@@ -12,7 +12,6 @@ import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 import { useAuth } from "@/context/AuthContext";
-import { useUpdateProgress } from "@/features/enrollments/api/queries";
 import { LearnerHeader } from "@/layouts/LearnerHeader";
 import { getApiErrorMessage } from "@/lib/apiError";
 import { staggerContainer } from "@/lib/motion";
@@ -29,10 +28,6 @@ import { AnnouncementsFeed } from "@/features/admin/components/AnnouncementsFeed
 export function StudentDashboardPage() {
   const { user } = useAuth();
   const { data, isLoading, isError, error } = useStudentDashboard();
-  const updateProgress = useUpdateProgress();
-
-  const handleProgressChange = (enrollmentId: string, progressPercent: number) =>
-    updateProgress.mutate({ enrollmentId, progressPercent });
 
   return (
     <div className="min-h-screen">
@@ -53,12 +48,6 @@ export function StudentDashboardPage() {
         {isError && (
           <Alert variant="error" className="mb-6">
             {getApiErrorMessage(error, "We could not load your dashboard.")}
-          </Alert>
-        )}
-
-        {updateProgress.isError && (
-          <Alert variant="error" className="mb-6">
-            {getApiErrorMessage(updateProgress.error, "We could not save your progress.")}
           </Alert>
         )}
 
@@ -146,8 +135,6 @@ export function StudentDashboardPage() {
                       <ContinueLearningCard
                         key={course.enrollmentId}
                         course={course}
-                        onProgressChange={handleProgressChange}
-                        isSaving={updateProgress.isPending}
                       />
                     ))}
                   </AnimatePresence>
