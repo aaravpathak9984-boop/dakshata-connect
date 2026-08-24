@@ -1,40 +1,26 @@
-# NovaLearn LMS — Firebase Edition
+# Dakshata Connect — MoES Capacity Portal
 
-> *Enterprise learning, engineered for hackathon speed: direct React 19 client integration with Firebase serverless backend infrastructure, custom role-based access control, and dynamic competency mapping.*
-
-**Frontend**
-
-
-
-
-
-
-
-**Backend & Serverless Infrastructure**
-
-
-
-
+> *Ministry of Earth Sciences (MoES) Capacity Building Portal: direct React 19 client integration with a serverless Firebase backend, custom role-based access control, announcements bulletins, trainer library file storage, and dynamic trainer competency mapping.*
 
 ---
 
 ## Overview
 
-A modern, enterprise-grade Learning Management System (LMS) tailored for **Smart India Hackathon (SIH)**. Built with **React 19** (TypeScript, Vite, Tailwind CSS, shadcn/ui) and powered by **Firebase** (Firestore, Authentication, Storage) for real-time data sync, secure multi-role permissions, and cloud resource storage.
+**Dakshata Connect** is a serverless, enterprise-grade Capacity Building Portal tailored for the **Smart India Hackathon (SIH)**. Built with **React 19** (TypeScript, Vite, Tailwind CSS, shadcn/ui) and powered exclusively by **Firebase** (Firestore, Authentication, Storage) for real-time synchronization, secure multi-role permissions, and cloud resource storage.
 
 ---
 
-## Status & SIH Requirement Coverage
+## Key Feature Modules & SIH Requirement Coverage
 
 | Feature Module | Trainee | Trainer | Admin | Backend Integration | Status |
 | --- | --- | --- | --- | --- | --- |
-| **Auth & Profile Management** | ✅ | ✅ | ✅ | Firebase Auth + Custom Claims (Trainee, Trainer, Admin) | ✅ Done |
-| **Competency Mapping** | — | ✅ | ✅ | Dynamic skill-matching algorithm (Skill matrix matching) | ✅ Done |
-| **Course Catalog & Enrollment** | ✅ | ✅ | 👁️ | Firestore real-time collections & enrollment tracking | ✅ Done |
-| **MCQ Assessments Hub** | ✅ | ✅ | 👁️ | Timed quizzes, deadline enforcement, auto-scoring | ✅ Done |
-| **Trainer Library & Content Wall** | ✅ | ✅ | 👁️ | Firebase Storage (PDFs, presentations, recorded lectures) | ✅ Done |
+| **Auth & Profile Gating** | ✅ | ✅ | ✅ | Firebase Auth + Custom Firestore user role synchronization | ✅ Done |
+| **Competency Mapping** | — | ✅ | ✅ | Weighted Skill Matrix matching course requirements against trainer profiles | ✅ Done |
+| **Course Catalog & Enrollment** | ✅ | ✅ | 👁️ | Firestore catalog searching and enrollment progress tracking | ✅ Done |
+| **MCQ Assessments Hub** | ✅ | ✅ | 👁️ | Timed quizzes, dynamic MCQ builder, and auto-graded trainee submissions | ✅ Done |
+| **Trainer Library** | ✅ | ✅ | 👁️ | Firebase Storage (lecture notes, presentations, PDFs, study materials) | ✅ Done |
 | **Admin Dashboards & Approval** | — | — | ✅ | User approval queues, platform usage charts (Recharts) | ✅ Done |
-| **Announcements & Wall** | ✅ | ✅ | ✅ | Global notifications, newly added content feed | ✅ Done |
+| **Announcements Bulletin** | ✅ | ✅ | ✅ | Global notification broadcasts, categorized updates | ✅ Done |
 
 ---
 
@@ -43,10 +29,9 @@ A modern, enterprise-grade Learning Management System (LMS) tailored for **Smart
 ```
 [ React 19 Frontend ] (Vite + TypeScript + Tailwind CSS)
        │
-       ├──▶ Firebase Authentication   (RBAC: Trainee, Trainer, Admin claims)
-       ├──▶ Cloud Firestore           (Users, Courses, Quizzes, Competency Ratings)
-       └──▶ Firebase Storage          (Lectures, Documents, Certificates)
-
+       ├──▶ Firebase Authentication   (Google Sign-In, Role-based routing)
+       ├──▶ Cloud Firestore           (Real-time databases, subcollection feedbacks)
+       └──▶ Firebase Storage          (Lecture Notes, PDFs, Study Materials)
 ```
 
 ---
@@ -60,26 +45,14 @@ A modern, enterprise-grade Learning Management System (LMS) tailored for **Smart
 
 ## Getting Started
 
-### Prerequisites
-
-| Tool | Version | Notes |
-| --- | --- | --- |
-| **Node.js** | 20+ / 22+ | JS runtime environment |
-| **npm / pnpm** | 9+ | Package manager |
-| **Firebase Project** | Standard | Free spark plan account |
-
----
-
 ### Setup Instructions
 
 #### 1. Clone & Install Dependencies
 
 ```bash
-npx degit BhanukaJanappriya/novalearn-lms/frontend sih-lms-firebase
-cd sih-lms-firebase
+git clone https://github.com/aaravpathak9984-boop/dakshata-connect.git
+cd dakshata-connect
 npm install
-npm install firebase
-
 ```
 
 #### 2. Configure Environment Variables
@@ -93,7 +66,6 @@ VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
-
 ```
 
 #### 3. Initialize Firebase Setup (`src/lib/firebase.ts`)
@@ -119,40 +91,39 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-
 ```
 
 #### 4. Run Development Server
 
 ```bash
 npm run dev
-
 ```
 
 Open `http://localhost:5173` in your browser.
 
 ---
 
-## Firestore Database Structure
+## Firestore Database Collections
 
-* **`users/{userId}`**: Stores profile info, user role (`Trainee` | `Trainer` | `Admin`), approval state, and skill competencies.
-* **`courses/{courseId}`**: Course records, enrolled trainees, and assigned trainer ID.
-* **`assessments/{assessmentId}`**: Subject-wise MCQ questions, deadlines, and trainee submission scores.
-* **`trainer_library/{fileId}`**: Links to lecture files and documents stored in Firebase Storage.
+* **`users/{userId}`**: Stores profile metadata, user roles (`Trainee` | `Trainer` | `Admin`), approval state, qualifications, meteorological skills, and experience tags.
+* **`courses/{courseId}`**: Capacity training course details, category tags, enrolled trainee counters, and assigned trainer references.
+* **`enrollments/{enrollmentId}`**: Trainee enrollment sheets, progress tracking metric counters, and status values (`Active` | `Completed` | `Dropped`).
+* **`assessments/{assessmentId}`**: Subject MCQ questionnaires, option arrays, correct answers index maps, and submission deadlines.
+* **`trainer_library/{fileId}`**: Download urls and file descriptors for study guides and presentations stored in Firebase Storage.
+* **`announcements/{announcementId}`**: Broadcast alerts (Notification, Achievement, Content) managed by coordinators.
 
 ---
 
 ## Design System
 
-| Token | Value |
-| --- | --- |
-| **Primary** | `#8B5CF6` |
-| **Accent** | `#A78BFA` |
-| **Success / Danger / Warning** | `#22C55E` · `#EF4444` · `#F59E0B` |
-| **Surface / Text** | `#FFFFFF` / `#F8FAFC` · `#1F2937` |
+| Token | Color Value | Accent |
+| --- | --- | --- |
+| **Primary Theme** | `#E11D48` (Crimson Red) | Consumed as HSL variables in Tailwind |
+| **Secondary Accent**| `#F3F4F6` | Sleek light/dark transitions |
+| **Status Signals** | `#10B981` (Success) · `#EF4444` (Danger) · `#F59E0B` (Warning) | Optimized for alerts and progress checks |
 
 ---
 
 ## License
 
-MIT / Hackathon Project — Built for Smart India Hackathon (SIH).# dakshata-connect
+MIT / Hackathon Project — Built for Smart India Hackathon (SIH).
