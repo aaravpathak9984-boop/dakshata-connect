@@ -246,7 +246,10 @@ export function TrainerLibrary() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => navigate("/dashboard")}
+            onClick={() => {
+              const isAdminRole = user?.roles.includes("Admin");
+              navigate(isAdminRole ? "/admin" : "/dashboard");
+            }}
             className="border-neutral-700 text-neutral-200 hover:bg-neutral-900 hover:text-white"
           >
             ← Back to Dashboard
