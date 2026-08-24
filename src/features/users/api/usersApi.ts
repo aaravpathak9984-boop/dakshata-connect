@@ -110,7 +110,8 @@ export const usersApi = {
 
   async setRoles(userId: string, roles: string[]): Promise<AdminUser> {
     const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { roles });
+    const primaryRole = roles.length > 0 ? roles[0] : "Trainee";
+    await updateDoc(userRef, { roles, role: primaryRole });
 
     const updatedDoc = await getDoc(userRef);
     const data = updatedDoc.data()!;

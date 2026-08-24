@@ -15,27 +15,42 @@ service cloud.firestore {
     // Verifies admin role checking both role string and roles array
     function isAdmin() {
       return isAuthenticated() && (
-        getUserData().role == "Admin" || 
-        ("roles" in getUserData() && "Admin" in getUserData().roles)
+        ("roles" in getUserData()) ? 
+          ("Admin" in getUserData().roles) : 
+          (getUserData().role == "Admin")
       );
     }
 
     // Verifies approved trainer checking both role string and roles array
     function isApprovedTrainer() {
-      return isAuthenticated() && (
-        (getUserData().role == "Trainer" && getUserData().isApproved == true) ||
-        ("roles" in getUserData() && "Trainer" in getUserData().roles && getUserData().isApproved == true)
+      return isAuthenticated() && getUserData().isApproved == true && (
+        ("roles" in getUserData()) ? 
+          ("Trainer" in getUserData().roles) : 
+          (getUserData().role == "Trainer")
       );
     }
 
-    // Helper: returns true if the update is changing any protected field
-    function isChangingProtectedFields() {
-      return (
-        request.resource.data.role != resource.data.role ||
-        request.resource.data.roles != resource.data.roles ||
-        request.resource.data.isApproved != resource.data.isApproved ||
-        request.resource.data.isActive != resource.data.isActive
-      );
+    // Public sign-up can only create the two non-privileged account types.
+    // Admin accounts must be provisioned by a trusted server/Admin SDK.
+    function isValidSelfRegistration(userId) {
+      return request.auth.uid == userId &&
+        request.resource.data.id == userId &&
+        request.resource.data.role in ["Trainee", "Trainer"] &&
+        request.resource.data.roles == [request.resource.data.role] &&
+        ((request.resource.data.role == "Trainee" &&
+          request.resource.data.isApproved == true &&
+          request.resource.data.isActive == true) ||
+         (request.resource.data.role == "Trainer" &&
+          request.resource.data.isApproved == false &&
+          request.resource.data.isActive == false));
+    }
+
+    function isOwnProfileUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        "firstName", "lastName", "fullName", "avatarUrl", "qualifications",
+        "skills", "interests", "workExperience", "certificates", "experienceYears",
+        "subjectsHandled", "lastLoginAtUtc"
+      ]);
     }
 
     // 1. Users Collection
@@ -44,12 +59,12 @@ service cloud.firestore {
     //    - Only Admins can change role, roles, isApproved, isActive on ANY user.
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && (isAdmin() || isValidSelfRegistration(userId));
       allow update: if isAuthenticated() && (
         // Admin can update anything on anyone
         isAdmin() ||
-        // Non-admin can only update their own doc AND must NOT touch protected fields
-        (request.auth.uid == userId && !isChangingProtectedFields())
+        // Users may only edit their own profile fields, never identity or permissions.
+        (request.auth.uid == userId && isOwnProfileUpdate())
       );
       allow delete: if isAuthenticated() && isAdmin();
     }
@@ -68,9 +83,13 @@ service cloud.firestore {
     // 3. Enrollments Collection
     match /enrollments/{enrollmentId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && (
-        request.resource.data.studentId == request.auth.uid || 
-        isAdmin()
+      allow create: if isAuthenticated() && (
+        request.resource.data.studentId == request.auth.uid || isAdmin()
+      );
+      allow update: if isAuthenticated() && (
+        (resource.data.studentId == request.auth.uid &&
+          request.resource.data.studentId == resource.data.studentId &&
+          request.resource.data.courseId == resource.data.courseId) || isAdmin()
       );
       allow delete: if isAuthenticated() && (
         resource.data.studentId == request.auth.uid || 
@@ -92,6 +111,26 @@ service cloud.firestore {
         allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
         allow update, delete: if isAuthenticated() && isAdmin();
       }
+    }
+
+    // 4b. Assignments & submissions (used by the assignment manager and gradebook).
+    match /assignments/{assignmentId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && (isApprovedTrainer() || isAdmin());
+
+      match /submissions/{submissionId} {
+        allow read: if isAuthenticated() && (
+          resource.data.studentId == request.auth.uid || isApprovedTrainer() || isAdmin()
+        );
+        allow create: if isAuthenticated() && request.resource.data.studentId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && (isApprovedTrainer() || isAdmin());
+      }
+    }
+
+    // 4c. Department administration.
+    match /departments/{departmentId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && isAdmin();
     }
 
     // 5. Trainer Library / Vault

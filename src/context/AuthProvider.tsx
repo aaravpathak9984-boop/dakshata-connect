@@ -42,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   id: firebaseUser.uid,
                   email: firebaseUser.email || "",
                   fullName: userData.fullName || `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || "User",
-                  roles: userData.roles || (userData.role ? [userData.role] : ["Trainee"]),
-                  role: userData.role || (userData.roles && userData.roles[0]) || "Trainee",
+                  roles: userData.roles && userData.roles.length > 0 ? userData.roles : (userData.role ? [userData.role] : ["Trainee"]),
+                  role: userData.roles && userData.roles.length > 0 ? userData.roles[0] : (userData.role || "Trainee"),
                 });
               }
             } else {
