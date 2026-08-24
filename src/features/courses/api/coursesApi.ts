@@ -25,6 +25,7 @@ export const coursesApi = {
           lecturerId: data.lecturerId || "",
           lecturerName: data.lecturerName || "Unknown Trainer",
           createdAtUtc: data.createdAtUtc || new Date().toISOString(),
+          requiredSkills: data.requiredSkills || [],
         });
       });
 
@@ -114,6 +115,7 @@ export const coursesApi = {
       coverImageUrl: payload.coverImageUrl || null,
       departmentId: payload.departmentId || null,
       departmentName: departmentName,
+      requiredSkills: payload.requiredSkills || [],
     };
 
     await updateDoc(courseRef, updateData);
