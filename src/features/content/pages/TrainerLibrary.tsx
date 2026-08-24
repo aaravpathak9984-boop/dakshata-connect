@@ -156,13 +156,14 @@ export function TrainerLibrary() {
       // Create FormData for Cloudinary
       const data = new FormData();
       data.append("file", selectedFile);
-      data.append("upload_preset", "ml_default");
+      data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "ml_default");
       data.append("resource_type", "auto");
 
       setUploadProgress(40);
 
       // Start Upload to specific Cloudinary environment
-      const res = await fetch("https://api.cloudinary.com/v1_1/lf1qnjqx/auto/upload", {
+      const cloudinaryCloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "lf1qnjqx";
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/auto/upload`, {
         method: "POST",
         body: data,
       });

@@ -38,9 +38,9 @@ export function AdminDashboardPage() {
   const handleSeedData = async () => {
     setSeeding(true);
     try {
-      const { seedMockData } = await import("@/lib/seedData");
-      await seedMockData();
-      alert("IMD / MoES realistic mock database records seeded successfully!");
+      const { seedDatabase } = await import("@/lib/seedDatabase");
+      await seedDatabase();
+      alert("Dakshata Connect mock database records batch committed successfully!");
       window.location.reload();
     } catch (err) {
       console.error("Seeding failed:", err);
@@ -195,13 +195,13 @@ export function AdminDashboardPage() {
       <footer className="mt-8 border-t border-border pt-4 flex justify-between items-center text-xs text-muted-foreground">
         <span>Dakshata Connect MoES Portal Admin Panel</span>
         <Button
-          variant="outline"
+          variant="destructive"
           size="sm"
-          className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+          className="text-xs"
           onClick={handleSeedData}
           isLoading={seeding}
         >
-          Seed Mock MoES Data
+          Seed / Reset Demo Data
         </Button>
       </footer>
     </div>
