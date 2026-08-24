@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -8,7 +8,9 @@ import {
   Download, 
   Check, 
   Users, 
-  Search
+  Search,
+  ClipboardList,
+  ListChecks
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
@@ -28,6 +30,11 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+
+// Import manager child subpages
+import { CourseBuilderPage } from "@/features/content/pages/CourseBuilderPage";
+import { AssignmentsManagerPage } from "@/features/assessments/pages/AssignmentsManagerPage";
+import { QuizManagerPage } from "@/features/quizzes/pages/QuizManagerPage";
 
 interface TrainerMaterial {
   id: string;
@@ -76,6 +83,14 @@ export function CourseDetailView() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Search parameters for deep linked tabs
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "overview";
+
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +101,8 @@ export function CourseDetailView() {
   const [updatingProgress, setUpdatingProgress] = useState(false);
   const [materials, setMaterials] = useState<TrainerMaterial[]>([]);
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [traineeAssignments, setTraineeAssignments] = useState<any[]>([]);
+  const [traineeQuizzes, setTraineeQuizzes] = useState<any[]>([]);
   
   // Feedback submission Form
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -98,7 +115,6 @@ export function CourseDetailView() {
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
   const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
   const [rosterSearch, setRosterSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"overview" | "roster">("overview");
 
   const isTrainerOrAdmin = user?.roles.some(
     (role) => role === "Trainer" || role === "Admin"
@@ -166,6 +182,32 @@ export function CourseDetailView() {
             setFeedbacks(feedbackList);
           } catch (feedErr) {
             console.warn("Could not load feedback list:", feedErr);
+          }
+
+          // Fetch trainee assignments
+          try {
+            const assQ = query(collection(db, "assignments"), where("courseId", "==", courseId));
+            const assSnap = await getDocs(assQ);
+            const assList: any[] = [];
+            assSnap.forEach((d) => {
+              assList.push({ id: d.id, ...d.data() });
+            });
+            setTraineeAssignments(assList);
+          } catch (assErr) {
+            console.warn("Could not load trainee assignments:", assErr);
+          }
+
+          // Fetch trainee quizzes
+          try {
+            const quizQ = query(collection(db, "assessments"), where("courseId", "==", courseId));
+            const quizSnap = await getDocs(quizQ);
+            const quizList: any[] = [];
+            quizSnap.forEach((d) => {
+              quizList.push({ id: d.id, ...d.data() });
+            });
+            setTraineeQuizzes(quizList);
+          } catch (quizErr) {
+            console.warn("Could not load trainee quizzes:", quizErr);
           }
         } else {
           // Trainer/Admin View - fetch all enrollments for this course
@@ -386,27 +428,53 @@ export function CourseDetailView() {
         </div>
         
         <div className="flex items-center gap-2">
-          {isTrainerOrAdmin ? (
-            <div className="flex bg-neutral-900 rounded-lg p-0.5 border border-neutral-800">
+          <div className="flex bg-neutral-900 rounded-lg p-0.5 border border-neutral-800 overflow-x-auto max-w-full">
+            <button 
+              onClick={() => setActiveTab("overview")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                activeTab === "overview" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              Overview
+            </button>
+            <button 
+              onClick={() => setActiveTab("content")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                activeTab === "content" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              {isTrainerOrAdmin ? "Content Builder" : "Lecture Slides"}
+            </button>
+            <button 
+              onClick={() => setActiveTab("work")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                activeTab === "work" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              Assignments
+            </button>
+            <button 
+              onClick={() => setActiveTab("quizzes")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                activeTab === "quizzes" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              Quizzes
+            </button>
+            {isTrainerOrAdmin && (
               <button 
-                onClick={() => setActiveTab("overview")}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  activeTab === "overview" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                Course Info
-              </button>
-              <button 
-                onClick={() => setActiveTab("roster")}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  activeTab === "roster" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                onClick={() => setActiveTab("students")}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  activeTab === "students" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
                 }`}
               >
                 Roster & Progress ({roster.length})
               </button>
-            </div>
-          ) : (
-            <div>
+            )}
+          </div>
+          
+          {!isTrainerOrAdmin && (
+            <div className="ml-2">
               {enrollment ? (
                 <div className="flex items-center gap-3">
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
@@ -429,9 +497,8 @@ export function CourseDetailView() {
         </div>
       </header>
 
-      {activeTab === "overview" ? (
+      {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Course Info column */}
           <div className="lg:col-span-2 space-y-6">
             <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -454,61 +521,26 @@ export function CourseDetailView() {
               </div>
             </div>
 
-            {/* Trainee Content Views */}
-            {!isTrainerOrAdmin && (
-              <>
-                {/* Required Skills tags */}
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3">
-                  <h2 className="text-sm font-bold text-neutral-200">Required Meteorologist Competencies</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {course.requiredSkills && course.requiredSkills.length > 0 ? (
-                      course.requiredSkills.map((skill: string, index: number) => (
-                        <span key={index} className="bg-neutral-800 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-700">
-                          {skill}
-                        </span>
-                      ))
-                    ) : (
-                      <>
-                        <span className="bg-neutral-850 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-800">Weather Forecasting</span>
-                        <span className="bg-neutral-850 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-800">Satellite Meteorology</span>
-                        <span className="bg-neutral-850 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-800">Oceanographic Data</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Course Library Materials */}
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-4">
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-rose-500" />
-                    Lecture Slides & Resources
-                  </h2>
-                  
-                  {materials.length === 0 ? (
-                    <p className="text-sm text-neutral-400">No attachments or training resources uploaded for this category yet.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {materials.map((file) => (
-                        <div key={file.id} className="flex justify-between items-center p-3 rounded-lg border border-neutral-800 bg-neutral-900 text-sm">
-                          <div className="min-w-0">
-                            <span className="font-medium text-neutral-200 block truncate">{file.title}</span>
-                            <span className="text-[10px] text-neutral-400 block">
-                              {file.fileName} ({formatBytes(file.fileSize)})
-                            </span>
-                          </div>
-                          <Button variant="ghost" size="icon" className="text-rose-500 hover:bg-neutral-800" onClick={() => window.open(file.fileUrl, "_blank")}>
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3">
+              <h2 className="text-sm font-bold text-neutral-200">Required Meteorologist Competencies</h2>
+              <div className="flex flex-wrap gap-2">
+                {course.requiredSkills && course.requiredSkills.length > 0 ? (
+                  course.requiredSkills.map((skill: string, index: number) => (
+                    <span key={index} className="bg-neutral-800 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-700">
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <>
+                    <span className="bg-neutral-850 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-800">Weather Forecasting</span>
+                    <span className="bg-neutral-850 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-800">Satellite Meteorology</span>
+                    <span className="bg-neutral-850 text-neutral-200 px-2.5 py-1 rounded-md text-xs border border-neutral-800">Oceanographic Data</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Sidebar: Feedback / Reviews section */}
           <div className="space-y-6">
             {!isTrainerOrAdmin && enrollment && (
               <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3">
@@ -547,7 +579,111 @@ export function CourseDetailView() {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === "content" && (
+        <div className="space-y-6">
+          {isTrainerOrAdmin ? (
+            <CourseBuilderPage />
+          ) : (
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <FileText className="h-5 w-5 text-rose-500" />
+                Lecture Slides & Resources
+              </h2>
+              {materials.length === 0 ? (
+                <p className="text-sm text-neutral-400">No attachments or training resources uploaded for this category yet.</p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {materials.map((file) => (
+                    <div key={file.id} className="flex justify-between items-center p-4 rounded-lg border border-neutral-800 bg-neutral-900 text-sm">
+                      <div className="min-w-0">
+                        <span className="font-medium text-neutral-200 block truncate">{file.title}</span>
+                        <span className="text-[10px] text-neutral-400 block mt-1">
+                          {file.fileName} ({formatBytes(file.fileSize)})
+                        </span>
+                      </div>
+                      <Button variant="ghost" size="icon" className="text-rose-500 hover:bg-neutral-800" onClick={() => window.open(file.fileUrl, "_blank")}>
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "work" && (
+        <div className="space-y-6">
+          {isTrainerOrAdmin ? (
+            <AssignmentsManagerPage />
+          ) : (
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-rose-500" />
+                Course Assignments
+              </h2>
+              {traineeAssignments.length === 0 ? (
+                <p className="text-sm text-neutral-400">No assignments assigned for this course yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {traineeAssignments.map((ass) => (
+                    <div key={ass.id} className="flex justify-between items-center p-4 rounded-lg border border-neutral-800 bg-neutral-900 text-sm">
+                      <div>
+                        <span className="font-semibold text-neutral-200 block">{ass.title}</span>
+                        <span className="text-xs text-neutral-400 block mt-1">
+                          Max Points: {ass.maxPoints} · Due: {new Date(ass.dueAtUtc).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/my-courses`)}>
+                        View Work
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "quizzes" && (
+        <div className="space-y-6">
+          {isTrainerOrAdmin ? (
+            <QuizManagerPage />
+          ) : (
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-rose-500" />
+                Course MCQ Assessments
+              </h2>
+              {traineeQuizzes.length === 0 ? (
+                <p className="text-sm text-neutral-400">No quizzes configured for this course yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {traineeQuizzes.map((quiz) => (
+                    <div key={quiz.id} className="flex justify-between items-center p-4 rounded-lg border border-neutral-800 bg-neutral-900 text-sm">
+                      <div>
+                        <span className="font-semibold text-neutral-200 block">{quiz.title}</span>
+                        <span className="text-xs text-neutral-400 block mt-1">
+                          Questions: {quiz.questions?.length || 0} · Due: {new Date(quiz.deadline).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <Button variant="default" size="sm" onClick={() => navigate(`/admin/assessments`)}>
+                        Attempt Quiz
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "students" && isTrainerOrAdmin && (
         /* Roster View for Trainers and Admins */
         <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -586,7 +722,6 @@ export function CourseDetailView() {
                   </tr>
                 ) : (
                   filteredRoster.map((student) => {
-                    // Match subscores for this user
                     const studentSubs = submissions.filter((s) => s.userId === student.studentId);
                     
                     return (
@@ -684,7 +819,7 @@ export function CourseDetailView() {
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   placeholder="Share details on course quality and research insights..."
-                  className="flex min-h-[80px] w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-white shadow-sm transition-colors placeholder:text-neutral-650 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  className="flex min-h-[80px] w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-white shadow-sm transition-colors placeholder:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   required
                 />
               </div>

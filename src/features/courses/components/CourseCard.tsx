@@ -103,28 +103,28 @@ export function CourseCard({ course, canManage, onEdit, onDelete }: CourseCardPr
             <div className="flex flex-wrap items-center gap-1.5 bg-neutral-900/40 p-2 rounded-lg border border-neutral-800">
               {/* Content and roster are visible to the same people who may manage the course. */}
               <Link
-                to={`/admin/courses/${course.id}/content`}
+                to={`/courses/${course.id}?tab=content`}
                 className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
                 <Layers className="h-3 w-3" />
                 Content
               </Link>
               <Link
-                to={`/admin/courses/${course.id}/assignments`}
+                to={`/courses/${course.id}?tab=work`}
                 className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
                 <ClipboardList className="h-3 w-3" />
                 Work
               </Link>
               <Link
-                to={`/admin/courses/${course.id}/quizzes`}
+                to={`/courses/${course.id}?tab=quizzes`}
                 className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
                 <ListChecks className="h-3 w-3" />
                 Quizzes
               </Link>
               <Link
-                to={`/admin/courses/${course.id}/students`}
+                to={`/courses/${course.id}?tab=students`}
                 className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
                 <Users className="h-3 w-3" />
