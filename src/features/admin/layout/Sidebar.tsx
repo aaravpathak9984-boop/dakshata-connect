@@ -18,7 +18,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const filteredGroups = navGroups
     .map((group) => {
       const items = group.items.filter(
-        (item) => !item.roles || item.roles.some((r) => user?.roles.includes(r))
+        (item) => !item.roles || (user?.role && item.roles.includes(user.role)) || item.roles.some((r) => user?.roles.includes(r))
       );
       return { ...group, items };
     })

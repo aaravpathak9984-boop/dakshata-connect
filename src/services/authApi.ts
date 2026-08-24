@@ -111,6 +111,7 @@ export const authApi = {
       email: firebaseUser.email || "",
       fullName: userData.fullName || `${userData.firstName} ${userData.lastName}`,
       roles: userData.roles || [userData.role || "Trainee"],
+      role: userData.role || (userData.roles && userData.roles[0]) || "Trainee",
     };
 
     return {
@@ -202,6 +203,7 @@ export const authApi = {
         email: userData.email,
         fullName: userData.fullName,
         roles: userData.roles,
+        role: userData.role || (userData.roles && userData.roles[0]) || "Trainee",
       },
     };
   },
@@ -236,6 +238,7 @@ export const authApi = {
             email: firebaseUser.email || "",
             fullName: userData.fullName || `${userData.firstName} ${userData.lastName}`,
             roles: userData.roles || [userData.role || "Trainee"],
+            role: userData.role || (userData.roles && userData.roles[0]) || "Trainee",
           };
 
           resolve({
@@ -265,6 +268,7 @@ export const authApi = {
       email: firebaseUser.email || "",
       fullName: userData.fullName || `${userData.firstName} ${userData.lastName}`,
       roles: userData.roles || [userData.role || "Trainee"],
+      role: userData.role || (userData.roles && userData.roles[0]) || "Trainee",
     };
   },
 

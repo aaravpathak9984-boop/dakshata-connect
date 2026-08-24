@@ -16,7 +16,7 @@ export function ProtectedRoute({ allowedRoles }: { allowedRoles?: string[] } = {
 
   // If specific roles are required, verify against the Firestore-sourced roles
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasAllowedRole = user.roles.some((r) => allowedRoles.includes(r));
+    const hasAllowedRole = allowedRoles.includes(user.role) || user.roles.some((r) => allowedRoles.includes(r));
     if (!hasAllowedRole) {
       // Redirect unauthorized users to their natural landing page
       return <Navigate to="/dashboard" replace />;

@@ -5,6 +5,7 @@ export interface UserSummary {
   email: string;
   fullName: string;
   roles: string[];
+  role: string;
 }
 
 export interface AuthenticationResponse {

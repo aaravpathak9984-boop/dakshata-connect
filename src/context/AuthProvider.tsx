@@ -42,7 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   id: firebaseUser.uid,
                   email: firebaseUser.email || "",
                   fullName: userData.fullName || `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || "User",
-                  roles: userData.roles || ["Trainee"],
+                  roles: userData.roles || (userData.role ? [userData.role] : ["Trainee"]),
+                  role: userData.role || (userData.roles && userData.roles[0]) || "Trainee",
                 });
               }
             } else {
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 email: firebaseUser.email || "",
                 fullName: firebaseUser.displayName || "User",
                 roles: ["Trainee"],
+                role: "Trainee",
               });
             }
             setIsBootstrapping(false);
