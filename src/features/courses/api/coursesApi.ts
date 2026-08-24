@@ -4,32 +4,37 @@ import type { Course, CreateCoursePayload } from "./types";
 
 export const coursesApi = {
   async list(): Promise<Course[]> {
-    const querySnapshot = await getDocs(collection(db, "courses"));
-    const courses: Course[] = [];
+    try {
+      const querySnapshot = await getDocs(collection(db, "courses"));
+      const courses: Course[] = [];
 
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      courses.push({
-        id: docSnap.id,
-        title: data.title || "",
-        code: data.code || "",
-        description: data.description || null,
-        category: data.category || "",
-        level: data.level || "Beginner",
-        status: data.status || "Draft",
-        price: data.price || 0,
-        coverImageUrl: data.coverImageUrl || null,
-        departmentId: data.departmentId || null,
-        departmentName: data.departmentName || null,
-        lecturerId: data.lecturerId || "",
-        lecturerName: data.lecturerName || "Unknown Trainer",
-        createdAtUtc: data.createdAtUtc || new Date().toISOString(),
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        courses.push({
+          id: docSnap.id,
+          title: data.title || "",
+          code: data.code || "",
+          description: data.description || null,
+          category: data.category || "",
+          level: data.level || "Beginner",
+          status: data.status || "Draft",
+          price: data.price || 0,
+          coverImageUrl: data.coverImageUrl || null,
+          departmentId: data.departmentId || null,
+          departmentName: data.departmentName || null,
+          lecturerId: data.lecturerId || "",
+          lecturerName: data.lecturerName || "Unknown Trainer",
+          createdAtUtc: data.createdAtUtc || new Date().toISOString(),
+        });
       });
-    });
 
-    // Sort by createdAtUtc descending
-    courses.sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime());
-    return courses;
+      // Sort by createdAtUtc descending
+      courses.sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime());
+      return courses;
+    } catch (err) {
+      console.warn("Non-blocking warning: Failed to list courses:", err);
+      return [];
+    }
   },
 
   async create(payload: CreateCoursePayload): Promise<Course> {

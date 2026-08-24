@@ -14,84 +14,101 @@ import type { CatalogCourse, CatalogFilters, Enrollment, PagedResult, Enrollment
 
 export const enrollmentsApi = {
   async catalog(filters: CatalogFilters): Promise<PagedResult<CatalogCourse>> {
-    const currentUid = auth.currentUser?.uid;
-    
-    // 1. Fetch user's enrollments to determine isEnrolled status
-    const enrolledCourseIds = new Set<string>();
-    if (currentUid) {
-      const enrollQuery = query(
-        collection(db, "enrollments"),
-        where("studentId", "==", currentUid)
-      );
-      const enrollSnap = await getDocs(enrollQuery);
-      enrollSnap.forEach((d) => {
-        enrolledCourseIds.add(d.data().courseId);
-      });
-    }
-
-    // 2. Fetch all courses
-    const coursesSnap = await getDocs(collection(db, "courses"));
-    let items: CatalogCourse[] = [];
-
-    coursesSnap.forEach((d) => {
-      const data = d.data();
-      // Only include Published courses in the catalog
-      if (data.status === "Published") {
-        items.push({
-          id: d.id,
-          title: data.title || "",
-          code: data.code || "",
-          description: data.description || null,
-          category: data.category || "General",
-          level: data.level || "Beginner",
-          price: data.price || 0,
-          coverImageUrl: data.coverImageUrl || null,
-          lecturerId: data.lecturerId || "",
-          lecturerName: data.lecturerName || "Subject Expert",
-          enrolledCount: data.activeEnrolments || 0,
-          isEnrolled: enrolledCourseIds.has(d.id),
-          createdAtUtc: data.createdAtUtc || new Date().toISOString(),
-        });
+    try {
+      const currentUid = auth.currentUser?.uid;
+      
+      // 1. Fetch user's enrollments to determine isEnrolled status
+      const enrolledCourseIds = new Set<string>();
+      if (currentUid) {
+        try {
+          const enrollQuery = query(
+            collection(db, "enrollments"),
+            where("studentId", "==", currentUid)
+          );
+          const enrollSnap = await getDocs(enrollQuery);
+          enrollSnap.forEach((d) => {
+            enrolledCourseIds.add(d.data().courseId);
+          });
+        } catch (enrollErr) {
+          console.warn("Failed to load student enrollments in catalog:", enrollErr);
+        }
       }
-    });
 
-    // 3. Apply Filters in-memory
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      items = items.filter(
-        (c) =>
-          c.title.toLowerCase().includes(searchLower) ||
-          c.code.toLowerCase().includes(searchLower) ||
-          (c.description && c.description.toLowerCase().includes(searchLower))
-      );
+      // 2. Fetch all courses
+      const coursesSnap = await getDocs(collection(db, "courses"));
+      let items: CatalogCourse[] = [];
+
+      coursesSnap.forEach((d) => {
+        const data = d.data();
+        // Only include Published courses in the catalog
+        if (data.status === "Published") {
+          items.push({
+            id: d.id,
+            title: data.title || "",
+            code: data.code || "",
+            description: data.description || null,
+            category: data.category || "General",
+            level: data.level || "Beginner",
+            price: data.price || 0,
+            coverImageUrl: data.coverImageUrl || null,
+            lecturerId: data.lecturerId || "",
+            lecturerName: data.lecturerName || "Subject Expert",
+            enrolledCount: data.activeEnrolments || 0,
+            isEnrolled: enrolledCourseIds.has(d.id),
+            createdAtUtc: data.createdAtUtc || new Date().toISOString(),
+          });
+        }
+      });
+
+      // 3. Apply Filters in-memory
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        items = items.filter(
+          (c) =>
+            c.title.toLowerCase().includes(searchLower) ||
+            c.code.toLowerCase().includes(searchLower) ||
+            (c.description && c.description.toLowerCase().includes(searchLower))
+        );
+      }
+
+      if (filters.category) {
+        items = items.filter((c) => c.category === filters.category);
+      }
+
+      if (filters.level) {
+        items = items.filter((c) => c.level === filters.level);
+      }
+
+      // 4. Sort and Paginate
+      items.sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime());
+
+      const totalCount = items.length;
+      const page = filters.page || 1;
+      const pageSize = filters.pageSize || 12;
+      const totalPages = Math.ceil(totalCount / pageSize);
+      const paginatedItems = items.slice((page - 1) * pageSize, page * pageSize);
+
+      return {
+        items: paginatedItems,
+        page,
+        pageSize,
+        totalCount,
+        totalPages,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages,
+      };
+    } catch (err) {
+      console.warn("Non-blocking warning: Failed to load catalog:", err);
+      return {
+        items: [],
+        page: filters.page || 1,
+        pageSize: filters.pageSize || 12,
+        totalCount: 0,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
     }
-
-    if (filters.category) {
-      items = items.filter((c) => c.category === filters.category);
-    }
-
-    if (filters.level) {
-      items = items.filter((c) => c.level === filters.level);
-    }
-
-    // 4. Sort and Paginate
-    items.sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime());
-
-    const totalCount = items.length;
-    const page = filters.page || 1;
-    const pageSize = filters.pageSize || 12;
-    const totalPages = Math.ceil(totalCount / pageSize);
-    const paginatedItems = items.slice((page - 1) * pageSize, page * pageSize);
-
-    return {
-      items: paginatedItems,
-      page,
-      pageSize,
-      totalCount,
-      totalPages,
-      hasPreviousPage: page > 1,
-      hasNextPage: page < totalPages,
-    };
   },
 
   async enroll(courseId: string): Promise<Enrollment> {

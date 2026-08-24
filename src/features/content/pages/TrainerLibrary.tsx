@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { 
   collection, 
   addDoc, 
@@ -42,6 +43,7 @@ interface LibraryMaterial {
 
 export function TrainerLibrary() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [materials, setMaterials] = useState<LibraryMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,8 +80,8 @@ export function TrainerLibrary() {
         setLoading(false);
       },
       (err) => {
-        console.error("Error reading trainer library:", err);
-        setError("Could not load library materials.");
+        console.warn("Non-blocking warning: Error reading trainer library:", err);
+        setMaterials([]);
         setLoading(false);
       }
     );
@@ -233,12 +235,22 @@ export function TrainerLibrary() {
 
   return (
     <PageTransition>
-      <div className="space-y-6">
-        <header>
-          <h1 className="text-2xl font-semibold tracking-tight">Trainer Library</h1>
-          <p className="mt-1 text-muted-foreground">
-            Access recorded presentations, lecture video files, and study notes uploaded by academic experts.
-          </p>
+      <div className="min-h-screen bg-neutral-950 text-neutral-100 p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Trainer Library</h1>
+            <p className="mt-1 text-sm text-neutral-400">
+              Access recorded presentations, lecture video files, and study notes uploaded by academic experts.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate("/dashboard")}
+            className="border-neutral-700 text-neutral-200 hover:bg-neutral-900 hover:text-white"
+          >
+            ← Back to Dashboard
+          </Button>
         </header>
 
         {error && <Alert variant="error">{error}</Alert>}
@@ -334,7 +346,7 @@ export function TrainerLibrary() {
 
         {/* Library Grid */}
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="h-32 rounded-xl border border-border bg-card p-4 animate-pulse flex flex-col justify-between" />
             ))}
@@ -348,7 +360,7 @@ export function TrainerLibrary() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMaterials.map((item) => (
               <div 
                 key={item.id} 
