@@ -56,6 +56,7 @@ export function ProfilePage() {
   const [experienceYears, setExperienceYears] = useState(0);
   const [subjectsText, setSubjectsText] = useState("");
 
+  const isAdminRole = user?.roles.includes("Admin");
   const isTrainer = user?.roles.includes("Trainer");
   const isTrainee = user?.roles.includes("Trainee");
 
@@ -194,11 +195,11 @@ export function ProfilePage() {
 
       <main className="mx-auto max-w-3xl px-6 py-10">
         <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          to={isAdminRole ? "/admin" : isTrainer ? "/admin/courses" : "/dashboard"}
+          className="inline-flex items-center gap-1.5 text-sm text-rose-500 hover:text-rose-600 font-semibold mb-4"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back to dashboard
+          {isAdminRole ? "Back to Admin Dashboard" : "Back to Dashboard"}
         </Link>
 
         <h1 className="mt-2 flex items-center gap-2 text-2xl font-semibold tracking-tight">
@@ -243,9 +244,10 @@ export function ProfilePage() {
               </div>
             </section>
 
-            {/* Core details editable for all */}
-            <section className="rounded-[18px] border border-border bg-card p-6 shadow-soft space-y-4">
-              <h2 className="font-semibold text-lg border-b border-border pb-1.5">Qualifications & Skills</h2>
+            {/* Core details editable for Trainers and Trainees */}
+            {(isTrainee || isTrainer) && (
+              <section className="rounded-[18px] border border-border bg-card p-6 shadow-soft space-y-4">
+                <h2 className="font-semibold text-lg border-b border-border pb-1.5">Qualifications & Skills</h2>
               
               <div className="space-y-1.5">
                 <Label htmlFor="qualifications">Academic Qualifications</Label>
@@ -275,7 +277,35 @@ export function ProfilePage() {
                   </div>
                 )}
               </div>
-            </section>
+              </section>
+            )}
+
+            {/* Admin platform controls view */}
+            {isAdminRole && (
+              <section className="rounded-[18px] border border-border bg-card p-6 shadow-soft space-y-4">
+                <h2 className="font-semibold text-lg border-b border-border pb-1.5 flex items-center gap-2">
+                  System Diagnostics & Controls
+                </h2>
+                <div className="text-sm space-y-2.5 text-muted-foreground">
+                  <div className="flex justify-between border-b border-border/40 pb-2">
+                    <span>Connected Project ID</span>
+                    <span className="font-semibold text-foreground">dakshata-connect</span>
+                  </div>
+                  <div className="flex justify-between border-b border-border/40 pb-2">
+                    <span>Database Status</span>
+                    <span className="font-semibold text-emerald-600">Operational</span>
+                  </div>
+                  <div className="flex justify-between border-b border-border/40 pb-2">
+                    <span>Authentication Service</span>
+                    <span className="font-semibold text-foreground">Firebase Auth Web</span>
+                  </div>
+                  <div className="flex justify-between pb-1">
+                    <span>Mock Seeder State</span>
+                    <span className="font-semibold text-foreground">Ready</span>
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* Trainee profile sections */}
             {isTrainee && (
