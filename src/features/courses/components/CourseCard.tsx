@@ -93,55 +93,57 @@ export function CourseCard({ course, canManage, onEdit, onDelete }: CourseCardPr
           {course.lecturerName}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-          <span className="text-sm font-semibold">
-            {course.price === 0 ? "Free" : `$${course.price.toFixed(2)}`}
-          </span>
+        <div className="mt-4 flex flex-col gap-3 border-t border-neutral-800 pt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-white">
+              {course.price === 0 ? "Free" : `$${course.price.toFixed(2)}`}
+            </span>
+          </div>
           {canManage && (
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1.5 bg-neutral-900/40 p-2 rounded-lg border border-neutral-800">
               {/* Content and roster are visible to the same people who may manage the course. */}
               <Link
                 to={`/admin/courses/${course.id}/content`}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <Layers className="h-3.5 w-3.5" />
+                <Layers className="h-3 w-3" />
                 Content
               </Link>
               <Link
                 to={`/admin/courses/${course.id}/assignments`}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <ClipboardList className="h-3.5 w-3.5" />
+                <ClipboardList className="h-3 w-3" />
                 Work
               </Link>
               <Link
                 to={`/admin/courses/${course.id}/quizzes`}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <ListChecks className="h-3.5 w-3.5" />
+                <ListChecks className="h-3 w-3" />
                 Quizzes
               </Link>
               <Link
                 to={`/admin/courses/${course.id}/students`}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <Users className="h-3.5 w-3.5" />
+                <Users className="h-3 w-3" />
                 Students
               </Link>
               <button
                 type="button"
                 onClick={() => onEdit(course)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-md bg-neutral-850 px-2 py-1 text-[11px] font-medium text-neutral-350 transition-colors hover:bg-neutral-800 hover:text-white"
               >
-                <Pencil className="h-3.5 w-3.5" />
+                <Pencil className="h-3 w-3" />
                 Edit
               </button>
               <button
                 type="button"
                 onClick={() => onDelete(course)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+                className="inline-flex items-center gap-1 rounded-md bg-rose-950/20 px-2 py-1 text-[11px] font-medium text-rose-400 transition-colors hover:bg-rose-900/30"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3 w-3" />
                 Delete
               </button>
             </div>

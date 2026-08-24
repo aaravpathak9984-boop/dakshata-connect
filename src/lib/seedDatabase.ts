@@ -120,21 +120,21 @@ export const seedDatabase = async (currentUser?: any) => {
     await setItem("users", "trainee_sharma", {
       id: "trainee_sharma",
       uid: "trainee_sharma",
-      firstName: "Anjali",
+      firstName: "Priya",
       lastName: "Sharma",
-      fullName: "Anjali Sharma",
-      email: "anjali.sharma@met.gov.in",
+      fullName: "Priya Sharma",
+      email: "priya.sharma@imd.gov.in",
       role: "Trainee",
       roles: ["Trainee"],
       isActive: true,
       isApproved: true,
       isLockedOut: false,
-      qualifications: ["B.Tech in Earth Sciences"],
+      qualifications: ["B.Tech in Earth Sciences", "Advanced Meteorology Course"],
       workExperience: [
-        { role: "Junior Analyst", org: "IMD New Delhi", years: 1 }
+        { role: "Junior Forecaster", org: "IMD Pune", years: 2 }
       ],
-      interests: ["Cyclone Forecasting", "GIS Mapping"],
-      skills: ["Python", "GIS Mapping"],
+      interests: ["Cyclone Forecasting", "GIS Mapping", "Radar Meteorology"],
+      skills: ["Python", "GIS Mapping", "Doppler Radar"],
       certificates: [],
       createdAtUtc: nowString
     });
@@ -142,41 +142,21 @@ export const seedDatabase = async (currentUser?: any) => {
     await setItem("users", "trainee_gupta", {
       id: "trainee_gupta",
       uid: "trainee_gupta",
-      firstName: "Rohan",
+      firstName: "Anjali",
       lastName: "Gupta",
-      fullName: "Rohan Gupta",
-      email: "rohan.gupta@met.gov.in",
+      fullName: "Anjali Gupta",
+      email: "anjali.gupta@imd.gov.in",
       role: "Trainee",
       roles: ["Trainee"],
       isActive: true,
       isApproved: true,
       isLockedOut: false,
-      qualifications: ["M.Sc. in Environmental Sciences"],
-      workExperience: [],
-      interests: ["Meteorology", "Data Analytics"],
-      skills: ["Data Analysis"],
-      certificates: [],
-      createdAtUtc: nowString
-    });
-
-    await setItem("users", "trainee_menon", {
-      id: "trainee_menon",
-      uid: "trainee_menon",
-      firstName: "Kavita",
-      lastName: "Menon",
-      fullName: "Kavita Menon",
-      email: "kavita.menon@met.gov.in",
-      role: "Trainee",
-      roles: ["Trainee"],
-      isActive: true,
-      isApproved: true,
-      isLockedOut: false,
-      qualifications: ["B.Sc. in Physics"],
+      qualifications: ["M.Sc. in Atmospheric Sciences"],
       workExperience: [
-        { role: "Met Assistant", org: "RMC Chennai", years: 2 }
+        { role: "Research Assistant", org: "IITM Pune", years: 1 }
       ],
-      interests: ["Observational Meteorology", "Severe Storm Warnings"],
-      skills: ["Observation Systems"],
+      interests: ["Ocean Wave Modeling", "Coastal Disaster Management"],
+      skills: ["Marine Forecasting", "Data Analysis"],
       certificates: [],
       createdAtUtc: nowString
     });
@@ -233,11 +213,11 @@ export const seedDatabase = async (currentUser?: any) => {
 
     // ==================== C. ENROLLMENTS ====================
 
-    await setItem("enrollments", "enroll_anjali_cyclone", {
-      id: "enroll_anjali_cyclone",
+    await setItem("enrollments", "enroll_priya_cyclone", {
+      id: "enroll_priya_cyclone",
       studentId: "trainee_sharma",
-      studentName: "Anjali Sharma",
-      studentEmail: "anjali.sharma@met.gov.in",
+      studentName: "Priya Sharma",
+      studentEmail: "priya.sharma@imd.gov.in",
       courseId: "course_cyclone",
       courseTitle: "Advanced Tropical Cyclone Tracking",
       courseCode: "MET-301",
@@ -250,28 +230,11 @@ export const seedDatabase = async (currentUser?: any) => {
       completedAtUtc: null
     });
 
-    await setItem("enrollments", "enroll_kavita_cyclone", {
-      id: "enroll_kavita_cyclone",
-      studentId: "trainee_menon",
-      studentName: "Kavita Menon",
-      studentEmail: "kavita.menon@met.gov.in",
-      courseId: "course_cyclone",
-      courseTitle: "Advanced Tropical Cyclone Tracking",
-      courseCode: "MET-301",
-      category: "Meteorology",
-      level: "Advanced",
-      coverImageUrl: null,
-      status: "Active",
-      progressPercent: 15,
-      enrolledAtUtc: nowString,
-      completedAtUtc: null
-    });
-
-    await setItem("enrollments", "enroll_rohan_disaster", {
-      id: "enroll_rohan_disaster",
+    await setItem("enrollments", "enroll_anjali_disaster", {
+      id: "enroll_anjali_disaster",
       studentId: "trainee_gupta",
-      studentName: "Rohan Gupta",
-      studentEmail: "rohan.gupta@met.gov.in",
+      studentName: "Anjali Gupta",
+      studentEmail: "anjali.gupta@imd.gov.in",
       courseId: "course_disaster",
       courseTitle: "Coastal Disaster Management",
       courseCode: "OCN-204",
@@ -280,23 +243,6 @@ export const seedDatabase = async (currentUser?: any) => {
       coverImageUrl: null,
       status: "Active",
       progressPercent: 75,
-      enrolledAtUtc: nowString,
-      completedAtUtc: null
-    });
-
-    await setItem("enrollments", "enroll_anjali_satellite", {
-      id: "enroll_anjali_satellite",
-      studentId: "trainee_sharma",
-      studentName: "Anjali Sharma",
-      studentEmail: "anjali.sharma@met.gov.in",
-      courseId: "course_satellite",
-      courseTitle: "Satellite Remote Sensing Basics",
-      courseCode: "RS-102",
-      category: "Remote Sensing",
-      level: "Beginner",
-      coverImageUrl: null,
-      status: "Active",
-      progressPercent: 0,
       enrolledAtUtc: nowString,
       completedAtUtc: null
     });
@@ -429,6 +375,59 @@ export const seedDatabase = async (currentUser?: any) => {
       createdAt: nowString,
       authorName: "System Admin"
     });
+
+    // ==================== G. SUPPORT TICKETS ====================
+    await setItem("support_tickets", "ticket_01", {
+      id: "ticket_01",
+      submittedById: "trainee_sharma",
+      submittedByName: "Priya Sharma",
+      submittedByEmail: "priya.sharma@imd.gov.in",
+      subject: "Access issues with Doppler radar slide deck",
+      category: "Technical",
+      priority: "High",
+      status: "Open",
+      createdAtUtc: nowString,
+      lastActivityAtUtc: nowString,
+      messageCount: 1,
+      assignedToId: null,
+      assignedToName: null,
+      resolvedAtUtc: null,
+      closedAtUtc: null
+    });
+
+    await setDoc(doc(db, "support_tickets", "ticket_01", "replies", "reply_01"), {
+      authorId: "trainee_sharma",
+      authorName: "Priya Sharma",
+      body: "I am getting a permission error when trying to view Doppler Radar Principles.pdf.",
+      createdAtUtc: nowString,
+      isInternalNote: false
+    }, { merge: true });
+
+    await setItem("support_tickets", "ticket_02", {
+      id: "ticket_02",
+      submittedById: "trainee_gupta",
+      submittedByName: "Anjali Gupta",
+      submittedByEmail: "anjali.gupta@imd.gov.in",
+      subject: "MCQ Quiz submission score discrepancy",
+      category: "Course",
+      priority: "Normal",
+      status: "InProgress",
+      createdAtUtc: nowString,
+      lastActivityAtUtc: nowString,
+      messageCount: 1,
+      assignedToId: "trainer_verma",
+      assignedToName: "Dr. Rajesh Verma",
+      resolvedAtUtc: null,
+      closedAtUtc: null
+    });
+
+    await setDoc(doc(db, "support_tickets", "ticket_02", "replies", "reply_02"), {
+      authorId: "trainee_gupta",
+      authorName: "Anjali Gupta",
+      body: "My score shows 50% but I got all eyewall answers correct. Please verify.",
+      createdAtUtc: nowString,
+      isInternalNote: false
+    }, { merge: true });
 
   } catch (error) {
     console.error("Seeding operation failed:", error);

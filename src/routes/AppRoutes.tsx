@@ -6,6 +6,7 @@ import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { FullScreenLoader } from "@/components/FullScreenLoader";
 import { AdminAreaRoute, HomeRedirect, ProtectedRoute, PublicOnlyRoute, RequireAdmin } from "./ProtectedRoute";
+import { DevRoleSwitcher } from "@/components/DevRoleSwitcher";
 import { TrainerCompetencyMapping } from "@/features/admin/components/TrainerCompetencyMapping";
 import { AnnouncementsFeed } from "@/features/admin/components/AnnouncementsFeed";
 
@@ -137,6 +138,7 @@ const CourseBuilderPage = lazy(() =>
 
 export function AppRoutes() {
   return (
+    <>
     <Routes>
       <Route index element={<HomeRedirect />} />
 
@@ -545,5 +547,7 @@ export function AppRoutes() {
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    <DevRoleSwitcher />
+    </>
   );
 }
