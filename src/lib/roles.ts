@@ -2,12 +2,12 @@ import type { UserSummary } from "@/types/auth";
 
 export function isAdmin(user: UserSummary | null): boolean {
   if (!user) return false;
-  return user.role === "Admin";
+  return user.roles?.includes("Admin") || user.role === "Admin";
 }
 
 export function isLecturer(user: UserSummary | null): boolean {
   if (!user) return false;
-  return user.role === "Trainer";
+  return user.roles?.includes("Trainer") || user.role === "Trainer";
 }
 
 /** Who may open the admin area (admins land on the dashboard, lecturers on courses). */
